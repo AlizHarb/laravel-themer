@@ -36,12 +36,12 @@ it('executes the full theme lifecycle flow', function () {
 
     // 3. Activate the theme
     // Set up temp env
-    $tempDir = __DIR__ . '/../temp';
+    $tempDir = __DIR__.'/../temp';
     if (!is_dir($tempDir)) {
         mkdir($tempDir, 0777, true);
     }
 
-    $envPath = $tempDir . '/.env.flow';
+    $envPath = $tempDir.'/.env.flow';
     file_put_contents($envPath, "THEME=default\n");
 
     $this->app->useEnvironmentPath($tempDir);
@@ -85,7 +85,7 @@ it('executes the full theme lifecycle flow', function () {
         $publishedPath = public_path('themes/flow-theme/flow.js');
     }
 
-    expect(File::exists($publishedPath))->toBeTrue('Asset not published in flow at ' . $publishedPath);
+    expect(File::exists($publishedPath))->toBeTrue('Asset not published in flow at '.$publishedPath);
 
     // Cleanup
     File::deleteDirectory($themePath);

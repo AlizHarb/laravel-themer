@@ -4,8 +4,17 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer;
 
-use AlizHarb\Themer\Console\Commands\{ActivateThemeCommand, ListThemesCommand, MakeThemeCommand, PublishThemeAssetsCommand, ThemeCacheCommand, ThemeClearCommand};
-use AlizHarb\Themer\Console\Commands\Laravel\{ThemeComponentMakeCommand, ThemeLivewireLayoutCommand, ThemeLivewireMakeCommand, ThemeViewMakeCommand};
+use AlizHarb\Themer\Console\Commands\ActivateThemeCommand;
+use AlizHarb\Themer\Console\Commands\Laravel\ThemeComponentMakeCommand;
+use AlizHarb\Themer\Console\Commands\Laravel\ThemeLivewireLayoutCommand;
+use AlizHarb\Themer\Console\Commands\Laravel\ThemeLivewireMakeCommand;
+use AlizHarb\Themer\Console\Commands\Laravel\ThemeViewMakeCommand;
+use AlizHarb\Themer\Console\Commands\ListThemesCommand;
+use AlizHarb\Themer\Console\Commands\MakeThemeCommand;
+use AlizHarb\Themer\Console\Commands\PublishThemeAssetsCommand;
+use AlizHarb\Themer\Console\Commands\ThemeCacheCommand;
+use AlizHarb\Themer\Console\Commands\ThemeCheckCommand;
+use AlizHarb\Themer\Console\Commands\ThemeClearCommand;
 use AlizHarb\Themer\Contracts\ThemerPlugin;
 use AlizHarb\Themer\Plugins\ModulesPlugin;
 use Illuminate\Contracts\Foundation\Application;
@@ -20,6 +29,14 @@ use Livewire\Features\SupportConsoleCommands\Commands\MakeCommand as LivewireMak
  */
 class ThemeServiceProvider extends ServiceProvider
 {
+    /**
+     * Create a new service provider instance.
+     */
+    public function __construct(Application $app)
+    {
+        parent::__construct($app);
+    }
+
     /**
      * The registered themer plugins.
      *
@@ -40,13 +57,18 @@ class ThemeServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/themer.php', 'themer');
+        $this->mergeConfigFrom(__DIR__.'/../config/themer.php', 'themer');
+
+        // Bind the provider instance so it can be resolved by dependent packages
+        $this->app->instance(self::class, $this);
 
         $this->app->singleton(ThemeManager::class, function (): \AlizHarb\Themer\ThemeManager {
             return new ThemeManager();
         });
 
         $this->app->alias(ThemeManager::class, 'themer');
+
+        $this->app['router']->aliasMiddleware('theme', Http\Middleware\SetTheme::class);
 
         // Register default plugins
         self::registerPlugin(new ModulesPlugin());
@@ -131,7 +153,7 @@ class ThemeServiceProvider extends ServiceProvider
     protected function bootForConsole(): void
     {
         $this->publishes([
-            __DIR__ . '/../config/themer.php' => config_path('themer.php'),
+            __DIR__.'/../config/themer.php' => config_path('themer.php'),
         ], 'themer-config');
 
         $this->commands([
@@ -145,6 +167,7 @@ class ThemeServiceProvider extends ServiceProvider
             ThemeComponentMakeCommand::class,
             ThemeCacheCommand::class,
             ThemeClearCommand::class,
+            ThemeCheckCommand::class,
         ]);
     }
 
@@ -154,7 +177,7 @@ class ThemeServiceProvider extends ServiceProvider
     protected function registerViteOverride(): void
     {
         Blade::directive('vite', function (string $expression): string {
-            return sprintf('<?php echo ' . \AlizHarb\Themer\ThemeAsset::class . '::vite(%s); ?>', $expression);
+            return sprintf('<?php echo %s::vite(%s); ?>', \AlizHarb\Themer\ThemeAsset::class, $expression);
         });
     }
 }

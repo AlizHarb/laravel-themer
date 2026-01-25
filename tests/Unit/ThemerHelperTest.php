@@ -28,14 +28,14 @@ it('resolves theme view if exists', function () {
     $manager->set('fixture');
 
     // Verify file exists
-    $viewFile = $themePath . '/resources/views/test.blade.php';
+    $viewFile = $themePath.'/resources/views/test.blade.php';
     if (!file_exists($viewFile)) {
         @mkdir(dirname($viewFile), 0755, true);
         file_put_contents($viewFile, 'Theme view content');
     }
 
     // Register namespace manually for testing isolation
-    view()->addNamespace('theme', $themePath . '/resources/views');
+    view()->addNamespace('theme', $themePath.'/resources/views');
 
     expect(view()->exists('theme::test'))->toBeTrue('View theme::test should exist');
     expect(Themer::resolve('test'))->toBe('theme::test');

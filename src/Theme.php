@@ -19,7 +19,12 @@ final readonly class Theme
         public string $path,
         public string $assetPath = '',
         public ?string $parent = null,
-        public array $config = []
+        public array $config = [],
+        public string $version = '1.0.0',
+        public bool $hasViews = false,
+        public bool $hasTranslations = false,
+        public bool $hasProvider = false,
+        public bool $hasLivewire = false
     ) {
     }
 
@@ -28,6 +33,27 @@ final readonly class Theme
      */
     public function getViewNamespace(): string
     {
-        return $this->name;
+        return strtolower($this->name);
+    }
+
+    /**
+     * Convert the theme to an array for caching.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'path' => $this->path,
+            'assetPath' => $this->assetPath,
+            'parent' => $this->parent,
+            'config' => $this->config,
+            'version' => $this->version,
+            'hasViews' => $this->hasViews,
+            'hasTranslations' => $this->hasTranslations,
+            'hasProvider' => $this->hasProvider,
+            'hasLivewire' => $this->hasLivewire,
+        ];
     }
 }

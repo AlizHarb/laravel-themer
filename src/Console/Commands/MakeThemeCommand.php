@@ -58,7 +58,9 @@ final class MakeThemeCommand extends Command
      */
     protected function createThemeStructure(string $path, string $name, string $slug): void
     {
+        File::makeDirectory($path.'/app/Livewire', 0755, true);
         File::makeDirectory($path.'/resources/views/layouts', 0755, true);
+        File::makeDirectory($path.'/resources/views/livewire', 0755, true);
         File::makeDirectory($path.'/resources/assets/css', 0755, true);
         File::makeDirectory($path.'/resources/assets/js', 0755, true);
         File::makeDirectory($path.'/lang', 0755, true);
@@ -78,30 +80,7 @@ final class MakeThemeCommand extends Command
             (string) json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         );
 
-        $this->createSampleLayout($path);
         $this->createPlaceholderAssets($path);
-    }
-
-    /**
-     * Create a sample layout file.
-     */
-    protected function createSampleLayout(string $path): void
-    {
-        $blade = <<<'BLADE'
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Theme' }}</title>
-    @vite(['resources/assets/css/app.css', 'resources/assets/js/app.js'])
-</head>
-<body>
-    {{ $slot }}
-</body>
-</html>
-BLADE;
-        File::put($path.'/resources/views/layouts/app.blade.php', $blade);
     }
 
     /**

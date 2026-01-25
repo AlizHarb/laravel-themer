@@ -13,13 +13,13 @@ return view('theme::pages.home');
 ```
 
 The resolver checks locations in this order:
-1.  **Active Theme**: `themes/{active}/resources/views/pages/home.blade.php`
-2.  **Parent Theme**: `themes/{parent}/resources/views/pages/home.blade.php`
-3.  **Application**: `resources/views/pages/home.blade.php` (Fallback)
+1.  **Active Theme**: `themes/{active}/resources/views/...`
+2.  **Parent Theme(s)**: `themes/{parent}/resources/views/...` (Cascades through multiple parent levels)
+3.  **Application**: `resources/views/...` (Fallback)
 
-### Overriding Views
+### Overriding Resources
 
-To override a view from a parent theme or the main application, simply create a file with the same path in your active theme.
+To override a view or asset from any parent theme or the main application, simply create a file with the same path in your active theme. Themer handles multi-level cascading automatically.
 
 **Example:**
 To customize the `layouts.app` view:
@@ -39,3 +39,15 @@ Components created with `--theme` are automatically namespaced and registered.
 ### Component Inheritance
 
 You can extend Livewire components from a parent theme. If a component is missing in the child theme, Themer attempts to resolve it from the parent theme automatically.
+
+## Route-based Switching (Middleware)
+
+You can enforce a specific theme for routes or route groups using the `theme` middleware:
+
+```php
+Route::middleware('theme:dark-theme')->group(function () {
+    Route::get('/dashboard', DashboardController::class);
+});
+```
+
+This is useful for multi-tenant applications or sections requiring a specific visual style (e.g., admin panels).

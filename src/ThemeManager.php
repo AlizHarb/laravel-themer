@@ -52,20 +52,36 @@ class ThemeManager
         $cachePath = $this->getCachePath();
 
         if (file_exists($cachePath)) {
+            /** @var array<int, array{
+             *     name: string,
+             *     path: string,
+             *     assetPath?: string,
+             *     parent?: string,
+             *     config?: array<string, mixed>,
+             *     version?: string,
+             *     hasViews?: bool,
+             *     hasTranslations?: bool,
+             *     hasProvider?: bool,
+             *     hasLivewire?: bool
+             * }> $themes */
             $themes = require $cachePath;
             foreach ($themes as $data) {
                 $this->register(new Theme(
                     $data['name'],
                     $data['path'],
-                    $data['assetPath'],
-                    $data['parent'],
-                    $data['config']
+                    $data['assetPath'] ?? '',
+                    $data['parent'] ?? null,
+                    $data['config'] ?? [],
+                    $data['version'] ?? '1.0.0',
+                    $data['hasViews'] ?? false,
+                    $data['hasTranslations'] ?? false,
+                    $data['hasProvider'] ?? false,
+                    $data['hasLivewire'] ?? false
                 ));
             }
 
             return;
         }
-
         if (!File::isDirectory($path)) {
             return;
         }
@@ -77,22 +93,29 @@ class ThemeManager
 
             if (File::exists($themeJsonPath)) {
                 $json = File::get($themeJsonPath);
+                /** @var array<string, mixed>|null $config */
                 $config = json_decode($json, true);
 
                 if (!is_array($config)) {
                     continue;
                 }
 
-                $name = $config['name'] ?? basename((string) $directory);
-                $assetPath = $config['asset_path'] ?? '';
+                $name = (string) ($config['name'] ?? basename((string) $directory));
+                $assetPath = (string) ($config['asset_path'] ?? '');
                 $parent = $config['parent'] ?? null;
+                $version = (string) ($config['version'] ?? '1.0.0');
 
                 $theme = new Theme(
                     name: $name,
                     path: (string) $directory,
                     assetPath: $assetPath,
                     parent: $parent,
-                    config: $config
+                    config: $config,
+                    version: $version,
+                    hasViews: is_dir($directory.'/resources/views'),
+                    hasTranslations: is_dir($directory.'/resources/lang') || is_dir($directory.'/lang'),
+                    hasProvider: file_exists($directory.'/ThemeServiceProvider.php'),
+                    hasLivewire: is_dir($directory.'/app/Livewire') || is_dir($directory.'/resources/views/livewire')
                 );
 
                 $this->register($theme);
@@ -103,6 +126,24 @@ class ThemeManager
     public function getCachePath(): string
     {
         return app()->bootstrapPath('cache/themes.php');
+    }
+
+    /**
+     * Temporarily switch to a specific theme for the duration of a callback.
+     */
+    public function forTheme(string $themeName, \Closure $callback): mixed
+    {
+        $originalTheme = $this->activeTheme;
+
+        try {
+            $this->set($themeName);
+
+            return $callback($this);
+        } finally {
+            if ($originalTheme) {
+                $this->set($originalTheme->name);
+            }
+        }
     }
 
     /**
@@ -129,6 +170,14 @@ class ThemeManager
     }
 
     /**
+     * Register theme Vite configuration.
+     */
+    protected function registerThemeVite(Theme $theme): void
+    {
+        // Placeholder for advanced Vite integration
+    }
+
+    /**
      * Register all theme resources (Views, Languages, Providers, Livewire, etc.)
      */
     protected function registerResources(Theme $theme): void
@@ -137,11 +186,8 @@ class ThemeManager
         $this->registerThemeLanguages($theme);
         $this->registerThemeServiceProvider($theme);
 
-        if ($theme->parent && $this->themes->has($theme->parent)) {
-            $parent = $this->themes->get($theme->parent);
-            if ($parent instanceof Theme) {
-                $this->registerThemeLivewire($parent);
-            }
+        foreach ($this->getThemeParents($theme) as $parent) {
+            $this->registerThemeLivewire($parent);
         }
 
         $this->registerThemeLivewire($theme);
@@ -152,19 +198,18 @@ class ThemeManager
         }
     }
 
-    /**
-     * Register theme-specific Service Provider if it exists.
-     */
     protected function registerThemeServiceProvider(Theme $theme): void
     {
+        if (!$theme->hasProvider) {
+            return;
+        }
+
         $providerPath = $theme->path.'/ThemeServiceProvider.php';
 
-        if (File::exists($providerPath)) {
-            require_once $providerPath;
+        require_once $providerPath;
 
-            if (class_exists('ThemeServiceProvider')) {
-                app()->register('ThemeServiceProvider');
-            }
+        if (class_exists('ThemeServiceProvider')) {
+            app()->register('ThemeServiceProvider');
         }
     }
 
@@ -173,13 +218,20 @@ class ThemeManager
      */
     protected function registerThemeViews(Theme $theme): void
     {
-        $paths = [$theme->path.'/resources/views'];
+        $paths = [];
 
-        if ($theme->parent && $this->themes->has($theme->parent)) {
-            $parentTheme = $this->themes->get($theme->parent);
-            if ($parentTheme instanceof Theme) {
-                $paths[] = $parentTheme->path.'/resources/views';
+        if ($theme->hasViews) {
+            $paths[] = $theme->path.'/resources/views';
+        }
+
+        foreach ($this->getThemeParents($theme) as $parent) {
+            if ($parent->hasViews) {
+                $paths[] = $parent->path.'/resources/views';
             }
+        }
+
+        if (empty($paths)) {
+            return;
         }
 
         // 1. Register 'theme::' namespace
@@ -188,7 +240,7 @@ class ThemeManager
         // 2. Register 'layouts::' and 'pages::' namespaces if they exist
         $layoutPaths = collect($paths)
             ->map(fn (string $p): string => $p.'/layouts')
-            ->filter(fn (string $p) => File::isDirectory($p))
+            ->filter(fn (string $p) => $this->directoryExists($p))
             ->toArray();
 
         if (!empty($layoutPaths)) {
@@ -197,7 +249,7 @@ class ThemeManager
 
         $pagesPaths = collect($paths)
             ->map(fn (string $p): string => $p.'/livewire/pages')
-            ->filter(fn (string $p) => File::isDirectory($p))
+            ->filter(fn (string $p) => $this->directoryExists($p))
             ->toArray();
 
         if (!empty($pagesPaths)) {
@@ -209,42 +261,65 @@ class ThemeManager
         $finder = app('view')->getFinder();
 
         foreach (array_reverse($paths) as $path) {
-            if (File::exists($path)) {
-                $finder->prependLocation($path);
+            $finder->prependLocation($path);
+
+            // Register Blade Components directory if it exists
+            $componentPath = $path.'/components';
+            if ($this->directoryExists($componentPath)) {
+                app('view')->addNamespace('theme-components', $componentPath);
             }
         }
     }
 
-    /**
-     * Register theme language namespaces.
-     */
     protected function registerThemeLanguages(Theme $theme): void
     {
+        if (!$theme->hasTranslations) {
+            return;
+        }
+
         $langPath = $theme->path.'/resources/lang';
-        if (!File::exists($langPath)) {
+
+        if (!$this->directoryExists($langPath)) {
             $langPath = $theme->path.'/lang';
         }
 
-        if (File::exists($langPath)) {
-            /** @var \Illuminate\Translation\Translator $translator */
-            $translator = app()->make('translator');
-            $lowerName = strtolower($theme->name);
+        /** @var \Illuminate\Translation\Translator $translator */
+        $translator = app()->make('translator');
+        $lowerName = strtolower($theme->name);
 
-            $translator->addNamespace($lowerName, $langPath);
+        $translator->addNamespace($lowerName, $langPath);
 
-            if ($theme === $this->activeTheme) {
-                $translator->addNamespace('theme', $langPath);
-            }
-
-            $translator->addJsonPath($langPath);
+        if ($theme === $this->activeTheme) {
+            $translator->addNamespace('theme', $langPath);
         }
 
-        if ($theme->parent && $this->themes->has($theme->parent)) {
-            $parent = $this->themes->get($theme->parent);
-            if ($parent instanceof Theme) {
-                $this->registerThemeLanguages($parent);
-            }
+        $translator->addJsonPath($langPath);
+
+        foreach ($this->getThemeParents($theme) as $parent) {
+            $this->registerThemeLanguages($parent);
         }
+    }
+
+    /**
+     * Get the parents of a theme.
+     *
+     * @return array<int, Theme>
+     */
+    protected function getThemeParents(Theme $theme): array
+    {
+        $parents = [];
+        $current = $theme;
+
+        while ($current->parent && $this->themes->has($current->parent)) {
+            $parent = $this->themes->get($current->parent);
+            if (!($parent instanceof Theme)) {
+                break;
+            }
+            $parents[] = $parent;
+            $current = $parent;
+        }
+
+        return $parents;
     }
 
     /**
@@ -283,14 +358,6 @@ class ThemeManager
     }
 
     /**
-     * Register theme Vite configuration.
-     */
-    protected function registerThemeVite(Theme $theme): void
-    {
-        // Placeholder for advanced Vite integration
-    }
-
-    /**
      * Get the active theme instance.
      */
     public function getActiveTheme(): ?Theme
@@ -311,10 +378,9 @@ class ThemeManager
 
         $paths = [$this->activeTheme->path.'/resources/views'];
 
-        if ($this->activeTheme->parent && $this->themes->has($this->activeTheme->parent)) {
-            $parentTheme = $this->themes->get($this->activeTheme->parent);
-            if ($parentTheme instanceof Theme) {
-                $paths[] = $parentTheme->path.'/resources/views';
+        foreach ($this->getThemeParents($this->activeTheme) as $parent) {
+            if ($parent->hasViews) {
+                $paths[] = $parent->path.'/resources/views';
             }
         }
 
@@ -462,7 +528,7 @@ class ThemeManager
                             ? resource_path('views/livewire/pages')
                             : resource_path('views/layouts');
 
-                        if (is_dir($appPath)) {
+                        if ($this->directoryExists($appPath)) {
                             Livewire::addNamespace($internalAlias, $appPath);
                             $internalRegistered[$currentAlias] = true;
                         }
@@ -487,5 +553,13 @@ class ThemeManager
 
             return null;
         });
+    }
+
+    /**
+     * Check if a directory exists (optimized for cache).
+     */
+    protected function directoryExists(string $path): bool
+    {
+        return app()->isProduction() ? true : is_dir($path);
     }
 }

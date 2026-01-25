@@ -18,23 +18,63 @@ it('scans modules for themes', function () {
     expect($plugin->getId())->toBe('modules');
 
     $fixturePath = __DIR__.'/../fixtures/modules';
-    if (!File::exists($fixturePath)) {
-        File::makeDirectory($fixturePath, 0755, true);
-    }
-
     $modulePath = $fixturePath.'/TestModule';
-    if (!File::exists($modulePath.'/resources/theme')) {
-        File::makeDirectory($modulePath.'/resources/theme', 0755, true);
+    $themePath = $modulePath.'/resources/theme';
+
+    if (!File::exists($themePath)) {
+        File::makeDirectory($themePath, 0755, true);
     }
 
-    File::put($modulePath.'/resources/theme/theme.json', (string) json_encode([
+    File::put($themePath.'/theme.json', (string) json_encode([
         'name' => 'module-theme',
         'asset_path' => 'modules/testmodule',
     ]));
 
     Config::set('modular.paths.modules', $fixturePath);
 
-    /** @var mixed $registry */
+    // Setup simple activator stub
+    $activator = new class () implements \AlizHarb\Modular\Contracts\Activator {
+        public function enable(string $module): void
+        {
+        }
+
+        public function disable(string $module): void
+        {
+        }
+
+        public function hasStatus(string $module, bool $status): bool
+        {
+            return true;
+        }
+
+        public function setActive(string $module, bool $active): void
+        {
+        }
+
+        public function setStatus(string $module, bool $status): void
+        {
+        }
+
+        public function isEnabled(string $module): bool
+        {
+            return true;
+        }
+
+        public function delete(string $module): void
+        {
+        }
+
+        public function reset(): void
+        {
+        }
+    };
+
+    app()->instance('TestActivator', $activator);
+    Config::set('modular.activator', 'test');
+    Config::set('modular.activators.test.class', 'TestActivator');
+    Config::set('modular.cache.path', __DIR__.'/../fixtures/modules_cache.php'); // Prevent writing to real cache
+
+    // Use real ModuleRegistry
     $registry = new \AlizHarb\Modular\ModuleRegistry();
     app()->instance('AlizHarb\Modular\ModuleRegistry', $registry);
 

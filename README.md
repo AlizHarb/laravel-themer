@@ -12,13 +12,19 @@
 
 ## ✨ Features
 
-- 🎭 **Theme Management**: Create, activate, and manage themes effortlessly.
-- ⚡ **Livewire 4 Integration**: First-class support for Livewire components and layouts with theme inheritance.
+- 🎭 **Theme Management**: Create, activate, and manage themes effortlessly with full multi-level inheritance support.
+- 🚀 **Zero-IO Discovery**: High-performance architecture that eliminates filesystem scans in production via deep caching.
+- ⚡ **Livewire 4 Integration**: First-class support for Livewire components and layouts with theme-aware resolution.
 - 🎨 **View Overrides**: Intelligent view resolution cascading from Active Theme -> Parent Theme -> Application.
+- 🚀 **Auto-Blade Discovery**: Automatic registration of theme-specific Blade components and inheritance.
+- 🏷️ **Theme Versioning**: Support for version metadata in `theme.json` for easier dependency mapping.
+- 🚦 **Ephemeral Switching**: Temporarily switch themes for specific tasks using `Themer::forTheme()`.
+- 🛣️ **Route Middleware**: Enforce specific themes for routes or groups via `middleware('theme:name')`.
 - 📦 **Asset Management**: Automatic asset publishing and symlinking mechanism for theme assets.
-- 🧩 **Modular Support**: Optional integration with `laravel-modular` to treat modules as themes.
-- 🔧 **Artisan Commands**: A comprehensive suite of commands to make, list, and publish themes.
-- 🛠 **Zero-Config Vite**: Extends `@vite` automatically to handle theme-specific assets.
+- 🧩 **Modular Support**: Native integration with `laravel-modular` including dependency verification in `theme:check`.
+- 🛡️ **Hierarchy Guard**: Built-in validation to detect circular dependencies, missing parents, and required modules.
+- 🔧 **Artisan Commands**: A comprehensive suite of commands (`make`, `list`, `check`, `cache`, `debug`) to manage themes.
+- 🛠 **Refined Vite Support**: Flexible Vite integration that supports theme-specific manifests and custom build directories.坐
 
 ## 📚 Documentation
 

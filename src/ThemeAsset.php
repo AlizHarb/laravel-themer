@@ -61,7 +61,7 @@ final class ThemeAsset
         if ($buildDirectory === null) {
             $hotPath = public_path(sprintf('themes/%s/hot', $theme->name));
             $buildDirectory = file_exists($hotPath)
-                ? 'themes/' . $theme->name
+                ? 'themes/'.$theme->name
                 : sprintf('themes/%s/build', $theme->name);
         }
 

@@ -22,7 +22,8 @@ it('can generate a new theme structure', function () {
 
     expect(File::isDirectory($fullPath))->toBeTrue()
         ->and(File::exists($fullPath.'/theme.json'))->toBeTrue()
-        ->and(File::exists($fullPath.'/resources/views/layouts/app.blade.php'))->toBeTrue()
+        ->and(File::isDirectory($fullPath.'/app/Livewire'))->toBeTrue()
+        ->and(File::isDirectory($fullPath.'/resources/views/livewire'))->toBeTrue()
         ->and(File::exists($fullPath.'/resources/assets/css/app.css'))->toBeTrue();
 
     $config = json_decode(File::get($fullPath.'/theme.json'), true);

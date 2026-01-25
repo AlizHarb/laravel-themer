@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeAsset;
-use AlizHarb\Themer\ThemeManager;
 
 if (!function_exists('get_active_theme')) {
     /**
@@ -12,7 +11,7 @@ if (!function_exists('get_active_theme')) {
      */
     function get_active_theme(): ?Theme
     {
-        /** @var ThemeManager|null $manager */
+        /** @var \AlizHarb\Themer\ThemeManager|null $manager */
         $manager = app()->bound('themer') ? app('themer') : null;
 
         return $manager?->getActiveTheme();

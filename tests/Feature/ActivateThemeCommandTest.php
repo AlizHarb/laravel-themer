@@ -15,12 +15,12 @@ it('can activate a theme', function () {
     $manager->register($theme);
 
     // Use a temp env file
-    $tempDir = __DIR__ . '/../temp';
+    $tempDir = __DIR__.'/../temp';
     if (!is_dir($tempDir)) {
         mkdir($tempDir, 0777, true);
     }
 
-    $envPath = $tempDir . '/.env.test';
+    $envPath = $tempDir.'/.env.test';
     file_put_contents($envPath, "THEME=old\n");
 
     $this->app->useEnvironmentPath($tempDir);

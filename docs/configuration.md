@@ -22,3 +22,6 @@ Configuration for asset publishing.
 
 ### `discovery`
 - `scan_modules`: Set to `true` to enable discovery of themes inside `modules/` (requires `laravel-modular`).
+
+> [!TIP]
+> Use `php artisan theme:cache` in production to optimize performance. This generates a static registry that eliminates all filesystem hits during the boot process.

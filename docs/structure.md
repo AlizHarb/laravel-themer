@@ -25,6 +25,7 @@ The `theme.json` file is the heart of your theme. It defines metadata and config
 ```json
 {
     "name": "My Theme",
+    "version": "1.0.0",
     "asset_path": "themes/my-theme",
     "parent": "base-theme"
 }

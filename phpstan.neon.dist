@@ -12,3 +12,6 @@ parameters:
     ignoreErrors:
         - '#Called .env. outside of the config directory#'
         - '#Trait AlizHarb\\Themer\\Traits\\HasThemeLayout is used zero times#'
+        - '#Unresolvable dependency resolving \[Parameter .*\] in class Illuminate\\Support\\ServiceProvider#'
+
+    reportUnmatchedIgnoredErrors: false

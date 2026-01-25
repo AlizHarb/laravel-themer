@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\File;
 class ThemeClearCommand extends Command
 {
     protected $signature = 'theme:clear';
+
     protected $description = 'Remove the configuration cache file';
 
     public function handle(ThemeManager $manager): int

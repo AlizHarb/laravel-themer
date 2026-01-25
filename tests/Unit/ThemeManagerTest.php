@@ -44,7 +44,7 @@ it('registers theme views when set', function () {
         mkdir($themePath.'/resources/views', 0777, true);
     }
 
-    $theme = new Theme('fixture', $themePath);
+    $theme = new Theme('fixture', $themePath, hasViews: true);
     $manager->register($theme);
 
     $manager->set('fixture');

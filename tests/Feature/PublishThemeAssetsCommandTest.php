@@ -31,24 +31,24 @@ it('can publish theme assets', function () {
         ->assertExitCode(0);
 
     clearstatcache();
-    $files = File::allFiles($themePath . '/resources/assets');
-    $glob = glob($themePath . '/resources/assets/*');
+    $files = File::allFiles($themePath.'/resources/assets');
+    $glob = glob($themePath.'/resources/assets/*');
 
     // Ensure config is set
     \Illuminate\Support\Facades\Config::set('themer.assets.path', 'themes');
 
     clearstatcache();
-    $path = $themePath . '/resources/assets/style.css';
+    $path = $themePath.'/resources/assets/style.css';
     if (!file_exists($path)) {
         @mkdir(dirname($path), 0755, true);
         file_put_contents($path, '/* test */');
     }
 
-    if (!File::exists($destination . '/style.css')) {
+    if (!File::exists($destination.'/style.css')) {
         // Fallback check
     }
 
-    expect(File::exists($destination . '/style.css'))->toBeTrue('Asset was not published to ' . $destination);
+    expect(File::exists($destination.'/style.css'))->toBeTrue('Asset was not published to '.$destination);
 
     File::deleteDirectory($themePath);
     File::deleteDirectory($destination);

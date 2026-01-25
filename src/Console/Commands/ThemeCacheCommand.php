@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\File;
 class ThemeCacheCommand extends Command
 {
     protected $signature = 'theme:cache';
+
     protected $description = 'Create a cache file for faster theme loading';
 
     public function handle(ThemeManager $manager): int
@@ -39,7 +40,7 @@ class ThemeCacheCommand extends Command
         }
 
         $themes = collect(File::directories($themesPath))
-            ->map(fn (string $dir) => $dir . '/theme.json')
+            ->map(fn (string $dir) => $dir.'/theme.json')
             ->filter(fn (string $file) => File::exists($file))
             ->map(function (string $path) {
                 $dir = dirname($path);
@@ -51,12 +52,17 @@ class ThemeCacheCommand extends Command
                     'assetPath' => $config['asset_path'] ?? '',
                     'parent' => $config['parent'] ?? null,
                     'config' => $config,
+                    'version' => $config['version'] ?? '1.0.0',
+                    'hasViews' => is_dir($dir.'/resources/views'),
+                    'hasTranslations' => is_dir($dir.'/resources/lang') || is_dir($dir.'/lang'),
+                    'hasProvider' => file_exists($dir.'/ThemeServiceProvider.php'),
+                    'hasLivewire' => is_dir($dir.'/app/Livewire') || is_dir($dir.'/resources/views/livewire'),
                 ];
             })->values()->all();
 
         $cachePath = $manager->getCachePath();
 
-        $content = '<?php return ' . var_export($themes, true) . ';';
+        $content = '<?php return '.var_export($themes, true).';';
         File::put($cachePath, $content);
 
         $this->components->info('Themes cached successfully!');

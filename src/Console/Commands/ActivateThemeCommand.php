@@ -66,7 +66,7 @@ final class ActivateThemeCommand extends Command
 
             return self::FAILURE;
         } catch (Throwable $e) {
-            $this->components->error('Failed to activate theme: ' . $e->getMessage());
+            $this->components->error('Failed to activate theme: '.$e->getMessage());
 
             return self::FAILURE;
         }
@@ -89,7 +89,7 @@ final class ActivateThemeCommand extends Command
         $content = File::get($path);
 
         if (str_contains($content, 'THEME=')) {
-            $content = (string) preg_replace('/THEME=.*/', 'THEME="' . $themeName . '"', $content);
+            $content = (string) preg_replace('/THEME=.*/', 'THEME="'.$themeName.'"', $content);
         } else {
             $content .= "\nTHEME=\"{$themeName}\"";
         }

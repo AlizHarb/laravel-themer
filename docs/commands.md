@@ -39,6 +39,27 @@ php artisan theme:publish "Dark Theme"
 
 If no theme is specified, it publishes assets for all themes.
 
+## Hierarchy Integrity
+
+Validate theme inheritance chains and detect circular dependencies:
+
+```bash
+php artisan theme:check
+```
+
+## Production Optimization
+
+Enable Zero-IO discovery by caching theme metadata. This eliminates filesystem hits during the Laravel boot cycle:
+
+```bash
+php artisan theme:cache
+```
+
+To clear the cache:
+
+```bash
+php artisan theme:clear
+```
 ## Making Components
 
 Create a theme-specific Livewire component:
