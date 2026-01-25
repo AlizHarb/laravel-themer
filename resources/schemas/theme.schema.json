@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Laravel Themer Configuration",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string",
+            "description": "The display name of the theme."
+        },
+        "asset_path": {
+            "type": "string",
+            "description": "Public path where assets are published (e.g. themes/my-theme)."
+        },
+        "parent": {
+            "type": ["string", "null"],
+            "description": "The slug or name of the parent theme to inherit from."
+        },
+        "description": {
+            "type": "string",
+            "description": "A description of the theme."
+        },
+        "author": {
+            "type": "string",
+            "description": "Author of the theme."
+        },
+        "version": {
+            "type": "string",
+            "description": "Semantic version of the theme."
+        },
+        "extra": {
+            "type": "object",
+            "description": "Any additional custom configuration."
+        }
+    },
+    "required": ["name", "asset_path"]
+}

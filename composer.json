@@ -1,0 +1,66 @@
+{
+    "name": "alizharb/laravel-themer",
+    "description": "A professional theme management system for Laravel 11/12 with first-class Livewire 4 support and zero-config modular integration.",
+    "keywords": ["laravel", "theme", "themer", "package"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ali Harb",
+            "email": "harbzali@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0",
+        "illuminate/view": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.5|^10.0",
+        "livewire/livewire": "^4.0",
+        "pestphp/pest": "*",
+        "pestphp/pest-plugin-laravel": "*",
+        "phpstan/phpstan": "*",
+        "rector/rector": "^2.3",
+        "driftingly/rector-laravel": "^2.1",
+        "larastan/larastan": "^3.9",
+        "phpunit/phpunit": "*",
+        "mockery/mockery": "*",
+        "spatie/phpunit-snapshot-assertions": "^5.1",
+        "laravel/pint": "^1.27",
+        "friendsofphp/php-cs-fixer": "^3.93"
+    },
+    "autoload": {
+        "psr-4": {
+            "AlizHarb\\Themer\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AlizHarb\\Themer\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AlizHarb\\Themer\\ThemeServiceProvider"
+            ],
+            "aliases": {
+                "Theme": "AlizHarb\\Themer\\Facades\\Theme"
+            }
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "suggest": {
+        "alizharb/laravel-modular": "Enables theme discovery within modular structures."
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
