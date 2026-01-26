@@ -39,7 +39,11 @@ final class ActivateThemeCommand extends Command
 
         if (!$themeName) {
             /** @var array<int, string> $themes */
-            $themes = $manager->all()->keys()->toArray();
+            $themes = $manager->all()
+                ->map(fn ($theme) => $theme->name)
+                ->unique()
+                ->values()
+                ->toArray();
 
             if (empty($themes)) {
                 $this->components->error('No themes discovered to activate.');

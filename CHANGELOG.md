@@ -2,6 +2,19 @@
 
 All notable changes to `laravel-themer` will be documented in this file.
 
+## v1.1.1 - 2026-01-26
+
+### Added
+- **Independent Vite Loader**: Introduced `vite.themer.js` for clean, standalone asset discovery in `themes/`.
+- **New Install Command**: Added `themer:install` to automate Vite configuration with user consent.
+- **Improved Installation**: `themer:install` now provides manual configuration instructions if automatic setup is declined.
+- **Enhanced Livewire Redirection**: Fixed Livewire component location redirection to correctly target theme directories.
+
+### Fixed
+- **Missing Theme Handling**: Added friendly error handling in `make:livewire` when the specified theme is not found.
+
+---
+
 ## v1.1.0 - 2026-01-25
 
 ### Added
@@ -27,4 +40,5 @@ All notable changes to `laravel-themer` will be documented in this file.
 ---
 
 ## v1.0.0 - 2026-01-10
+
 - Initial release.

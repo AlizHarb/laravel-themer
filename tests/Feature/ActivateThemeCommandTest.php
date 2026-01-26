@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\File;
 it('can activate a theme', function () {
     /** @var ThemeManager $manager */
     $manager = app('themer');
-    $theme = new Theme('blue', '/path/blue');
+    $theme = new Theme('blue', 'blue', '/path/blue');
     $manager->register($theme);
 
     // Use a temp env file
@@ -44,8 +44,8 @@ it('fails to activate non-existent theme', function () {
 it('prompts for theme if none provided', function () {
     /** @var ThemeManager $manager */
     $manager = app('themer');
-    $manager->register(new Theme('t1', '/p1'));
-    $manager->register(new Theme('t2', '/p2'));
+    $manager->register(new Theme('t1', 't1', '/p1'));
+    $manager->register(new Theme('t2', 't2', '/p2'));
 
     $this->artisan('theme:activate')
         ->expectsChoice('Which theme do you want to activate?', 't2', ['t1', 't2'])

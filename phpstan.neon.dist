@@ -13,5 +13,6 @@ parameters:
         - '#Called .env. outside of the config directory#'
         - '#Trait AlizHarb\\Themer\\Traits\\HasThemeLayout is used zero times#'
         - '#Unresolvable dependency resolving \[Parameter .*\] in class Illuminate\\Support\\ServiceProvider#'
+        - '#Class AlizHarb\\Modular\\Livewire\\Commands\\ModularLivewireMakeCommand not found.#'
 
     reportUnmatchedIgnoredErrors: false

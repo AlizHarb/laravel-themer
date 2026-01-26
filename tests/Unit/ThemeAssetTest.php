@@ -17,7 +17,7 @@ it('returns standard asset url if no theme active', function () {
 it('returns theme specific asset url when active', function () {
     /** @var ThemeManager $manager */
     $manager = app(ThemeManager::class);
-    $theme = new Theme(name: 'dark', path: '/local/path', assetPath: 'themes/dark-mode');
+    $theme = new Theme(name: 'dark', slug: 'dark', path: '/local/path', assetPath: 'themes/dark-mode');
     $manager->register($theme);
     $manager->set('dark');
 
@@ -29,7 +29,7 @@ it('returns theme specific asset url when active', function () {
 it('defaults asset path to theme name if not provided', function () {
     /** @var ThemeManager $manager */
     $manager = app(ThemeManager::class);
-    $theme = new Theme(name: 'retro', path: '/local/path');
+    $theme = new Theme(name: 'retro', slug: 'retro', path: '/local/path');
     $manager->register($theme);
     $manager->set('retro');
 

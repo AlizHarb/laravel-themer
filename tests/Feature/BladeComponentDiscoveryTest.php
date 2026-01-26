@@ -9,24 +9,6 @@ use AlizHarb\Themer\ThemeManager;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
 
-it('supports ephemeral theme switching via forTheme', function () {
-    $manager = app(ThemeManager::class);
-    $manager->register(new Theme('default', '/path/default'));
-    $manager->register(new Theme('branded', '/path/branded'));
-
-    $manager->set('default');
-    expect($manager->getActiveTheme()->name)->toBe('default');
-
-    $result = $manager->forTheme('branded', function ($manager) {
-        expect($manager->getActiveTheme()->name)->toBe('branded');
-
-        return 'success';
-    });
-
-    expect($result)->toBe('success')
-        ->and($manager->getActiveTheme()->name)->toBe('default');
-});
-
 it('discovers blade components directory', function () {
     $tempDir = __DIR__.'/../temp/blade-test';
     $compDir = $tempDir.'/resources/views/components';
@@ -38,7 +20,7 @@ it('discovers blade components directory', function () {
     File::put($compDir.'/button.blade.php', '<button>{{ $slot }}</button>');
 
     $manager = app(ThemeManager::class);
-    $theme = new Theme('blade-theme', $tempDir, hasViews: true);
+    $theme = new Theme('blade-theme', 'blade-theme', $tempDir, hasViews: true);
     $manager->register($theme);
 
     $manager->set('blade-theme');

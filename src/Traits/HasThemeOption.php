@@ -31,24 +31,94 @@ trait HasThemeOption
     }
 
     /**
-     * Get the console command options.
-     *
-     * @return array<int, array<int, mixed>>
+     * Execute a callback within the context of a specific theme.
      */
-    protected function getOptions(): array
+    protected function withTheme(callable $next): int
     {
-        /** @var array<int, array<int, mixed>> $options */
-        $options = parent::getOptions();
+        $themeName = $this->getTheme();
 
-        // Check if theme option is already defined (e.g. in signature or parent)
-        foreach ($options as $option) {
-            if ($option[0] === 'theme') {
-                return $options;
+        if (!$themeName) {
+            return $next();
+        }
+
+        /** @var \AlizHarb\Themer\ThemeManager $manager */
+        $manager = app(\AlizHarb\Themer\ThemeManager::class);
+        $theme = $manager->all()->get($themeName);
+
+        if (!$theme) {
+            $this->components->error(sprintf('Theme [%s] not found.', $themeName));
+
+            return 1;
+        }
+
+        $themeLower = strtolower($theme->name);
+        $classPath = $theme->path.'/app/Livewire';
+        $viewPath = $theme->path.'/resources/views/livewire';
+
+        if (!is_dir($classPath)) {
+            mkdir($classPath, 0755, true);
+        }
+
+        if (!is_dir($viewPath)) {
+            mkdir($viewPath, 0755, true);
+        }
+
+        // Temporarily override Livewire configuration to redirect the generator
+        $originalNamespace = (string) config('livewire.class_namespace');
+        $originalViewPath = (string) config('livewire.view_path');
+
+        // Register theme namespace for Livewire
+        \Livewire\Livewire::addNamespace(
+            $themeLower,
+            $viewPath,
+            'Theme\\'.\Illuminate\Support\Str::studly($theme->name).'\\Livewire',
+            $classPath,
+            $viewPath
+        );
+
+        // Use Config::set to make sure internal tools picking up config see the theme paths
+        \Illuminate\Support\Facades\Config::set('livewire.class_namespace', 'Theme\\'.\Illuminate\Support\Str::studly($theme->name).'\\Livewire');
+        \Illuminate\Support\Facades\Config::set('livewire.view_path', $viewPath);
+
+        // Prefix name with theme namespace
+        // @phpstan-ignore-next-line
+        if ($this->hasArgument('name')) {
+            /** @var string|null $name */
+            // @phpstan-ignore-next-line
+            $name = $this->argument('name');
+            if ($name) {
+                $cleanName = str_replace(['::', '/'], '.', $name);
+                $this->input->setArgument('name', $themeLower.'::'.$cleanName);
             }
         }
 
-        return array_merge($options, [
+        try {
+            return $next();
+        } finally {
+            \Illuminate\Support\Facades\Config::set('livewire.class_namespace', $originalNamespace);
+            \Illuminate\Support\Facades\Config::set('livewire.view_path', $originalViewPath);
+        }
+    }
+
+    /**
+     * Get the theme console command options.
+     *
+     * @return array<int, array>
+     */
+    protected function getThemeOptions(): array
+    {
+        return [
             ['theme', null, InputOption::VALUE_OPTIONAL, 'The name of the theme.'],
-        ]);
+        ];
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array<int, array>
+     */
+    protected function getOptions(): array
+    {
+        return array_merge(parent::getOptions(), $this->getThemeOptions());
     }
 }

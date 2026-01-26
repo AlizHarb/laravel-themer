@@ -71,6 +71,7 @@ final class MakeThemeCommand extends Command
         $config = [
             '$schema' => 'https://raw.githubusercontent.com/alizharb/laravel-themer/main/resources/schemas/theme.schema.json',
             'name' => $name,
+            'slug' => $slug,
             'asset_path' => 'themes/'.$slug,
             'parent' => $parent,
         ];

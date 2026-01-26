@@ -27,9 +27,9 @@
         "phpunit/phpunit": "*",
         "mockery/mockery": "*",
         "spatie/phpunit-snapshot-assertions": "^5.1",
-        "laravel/pint": "^1.27",
         "friendsofphp/php-cs-fixer": "^3.93",
-        "alizharb/laravel-modular": "^1.1"
+        "alizharb/laravel-modular": "^1.1",
+        "laravel/pint": "^1.27"
     },
     "autoload": {
         "psr-4": {
@@ -62,7 +62,10 @@
         }
     },
     "suggest": {
-        "alizharb/laravel-modular": "Enables theme discovery within modular structures."
+        "alizharb/laravel-modular": "Enables theme discovery within modular structures and provides zero-config autoloading for modules.",
+        "alizharb/laravel-modular-livewire": "Provides automatic Livewire component discovery and registration within modules.",
+        "alizharb/laravel-modular-filament": "Enables Filament v5 admin panel integration with automatic discovery in modules.",
+        "alizharb/laravel-hooks": "Adds a universal extensibility and plugin system for Laravel applications."
     },
     "minimum-stability": "dev",
     "prefer-stable": true

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\View;
 
 it('can register a theme', function () {
     $manager = new ThemeManager();
-    $theme = new Theme('default', '/path/to/theme');
+    $theme = new Theme('default', 'default', '/path/to/theme');
 
     $manager->register($theme);
 
@@ -21,7 +21,7 @@ it('can register a theme', function () {
 
 it('can set an active theme', function () {
     $manager = new ThemeManager();
-    $theme = new Theme('dark', '/path/to/dark');
+    $theme = new Theme('dark', 'dark', '/path/to/dark');
     $manager->register($theme);
 
     $manager->set('dark');
@@ -44,7 +44,7 @@ it('registers theme views when set', function () {
         mkdir($themePath.'/resources/views', 0777, true);
     }
 
-    $theme = new Theme('fixture', $themePath, hasViews: true);
+    $theme = new Theme('fixture', 'fixture', $themePath, hasViews: true);
     $manager->register($theme);
 
     $manager->set('fixture');

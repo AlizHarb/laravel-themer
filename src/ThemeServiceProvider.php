@@ -15,6 +15,7 @@ use AlizHarb\Themer\Console\Commands\PublishThemeAssetsCommand;
 use AlizHarb\Themer\Console\Commands\ThemeCacheCommand;
 use AlizHarb\Themer\Console\Commands\ThemeCheckCommand;
 use AlizHarb\Themer\Console\Commands\ThemeClearCommand;
+use AlizHarb\Themer\Console\Commands\ThemeInstallCommand;
 use AlizHarb\Themer\Contracts\ThemerPlugin;
 use AlizHarb\Themer\Plugins\ModulesPlugin;
 use Illuminate\Contracts\Foundation\Application;
@@ -97,6 +98,11 @@ class ThemeServiceProvider extends ServiceProvider
 
             foreach ($commands as $original => $themeCommand) {
                 $this->app->extend($original, function (mixed $command, Application $app) use ($themeCommand): object {
+                    // If the command is already overridden by Modular, don't break it
+                    if ($command instanceof \AlizHarb\Modular\Livewire\Commands\ModularLivewireMakeCommand) {
+                        return $command;
+                    }
+
                     return $app->make($themeCommand);
                 });
             }
@@ -157,14 +163,11 @@ class ThemeServiceProvider extends ServiceProvider
         ], 'themer-config');
 
         $this->commands([
+            ThemeInstallCommand::class,
             PublishThemeAssetsCommand::class,
             ListThemesCommand::class,
             ActivateThemeCommand::class,
             MakeThemeCommand::class,
-            ThemeLivewireMakeCommand::class,
-            ThemeLivewireLayoutCommand::class,
-            ThemeViewMakeCommand::class,
-            ThemeComponentMakeCommand::class,
             ThemeCacheCommand::class,
             ThemeClearCommand::class,
             ThemeCheckCommand::class,

@@ -13,14 +13,18 @@ final readonly class Theme
      * Create a new Theme instance.
      *
      * @param  array<string, mixed>  $config
+     * @param  array<int, array{name: string, email?: string, role?: string}>  $authors
      */
     public function __construct(
         public string $name,
+        public string $slug,
         public string $path,
         public string $assetPath = '',
         public ?string $parent = null,
         public array $config = [],
         public string $version = '1.0.0',
+        public ?string $author = null,
+        public array $authors = [],
         public bool $hasViews = false,
         public bool $hasTranslations = false,
         public bool $hasProvider = false,
@@ -33,7 +37,7 @@ final readonly class Theme
      */
     public function getViewNamespace(): string
     {
-        return strtolower($this->name);
+        return $this->slug;
     }
 
     /**
@@ -45,11 +49,14 @@ final readonly class Theme
     {
         return [
             'name' => $this->name,
+            'slug' => $this->slug,
             'path' => $this->path,
             'assetPath' => $this->assetPath,
             'parent' => $this->parent,
             'config' => $this->config,
             'version' => $this->version,
+            'author' => $this->author,
+            'authors' => $this->authors,
             'hasViews' => $this->hasViews,
             'hasTranslations' => $this->hasTranslations,
             'hasProvider' => $this->hasProvider,

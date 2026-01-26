@@ -23,7 +23,7 @@ it('resolves theme view if exists', function () {
     }
 
     $themePath = realpath(__DIR__.'/../fixtures/theme');
-    $theme = new Theme('fixture', $themePath);
+    $theme = new Theme('fixture', 'fixture', $themePath);
     $manager->register($theme);
     $manager->set('fixture');
 
@@ -44,7 +44,7 @@ it('resolves theme view if exists', function () {
 it('falls back to default if theme view missing', function () {
     /** @var ThemeManager $manager */
     $manager = app(ThemeManager::class);
-    $theme = new Theme('fixture', __DIR__.'/../fixtures/theme');
+    $theme = new Theme('fixture', 'fixture', __DIR__.'/../fixtures/theme');
     $manager->register($theme);
     $manager->set('fixture');
 

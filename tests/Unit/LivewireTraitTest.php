@@ -34,7 +34,7 @@ it('resolves layout using themer', function () {
     // Register the namespace manually for the test
     View::addNamespace('theme', $tempPath);
 
-    $theme = new Theme('dark', '/path/to/dark');
+    $theme = new Theme('dark', 'dark', '/path/to/dark');
     $manager->register($theme);
     $manager->set('dark');
 

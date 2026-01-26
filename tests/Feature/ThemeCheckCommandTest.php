@@ -9,8 +9,8 @@ use AlizHarb\Themer\ThemeManager;
 
 it('passes when hierarchy is valid', function () {
     $manager = app(ThemeManager::class);
-    $manager->register(new Theme('parent', '/path/1'));
-    $manager->register(new Theme('child', '/path/2', parent: 'parent'));
+    $manager->register(new Theme('parent', 'parent', '/path/1'));
+    $manager->register(new Theme('child', 'child', '/path/2', parent: 'parent'));
 
     $this->artisan('theme:check')
         ->assertSuccessful()
@@ -19,7 +19,7 @@ it('passes when hierarchy is valid', function () {
 
 it('fails when parent is missing', function () {
     $manager = app(ThemeManager::class);
-    $manager->register(new Theme('child', '/path/2', parent: 'missing'));
+    $manager->register(new Theme('child', 'child', '/path/2', parent: 'missing'));
 
     $this->artisan('theme:check')
         ->assertFailed()
@@ -28,8 +28,8 @@ it('fails when parent is missing', function () {
 
 it('detects circular dependencies', function () {
     $manager = app(ThemeManager::class);
-    $manager->register(new Theme('a', '/path/a', parent: 'b'));
-    $manager->register(new Theme('b', '/path/b', parent: 'a'));
+    $manager->register(new Theme('a', 'a', '/path/a', parent: 'b'));
+    $manager->register(new Theme('b', 'b', '/path/b', parent: 'a'));
 
     $this->artisan('theme:check')
         ->assertFailed()
@@ -38,9 +38,9 @@ it('detects circular dependencies', function () {
 
 it('detects deep circular dependencies', function () {
     $manager = app(ThemeManager::class);
-    $manager->register(new Theme('x', '/path/x', parent: 'y'));
-    $manager->register(new Theme('y', '/path/y', parent: 'z'));
-    $manager->register(new Theme('z', '/path/z', parent: 'x'));
+    $manager->register(new Theme('x', 'x', '/path/x', parent: 'y'));
+    $manager->register(new Theme('y', 'y', '/path/y', parent: 'z'));
+    $manager->register(new Theme('z', 'z', '/path/z', parent: 'x'));
 
     $this->artisan('theme:check')
         ->assertFailed()

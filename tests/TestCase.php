@@ -13,6 +13,10 @@ class TestCase extends Orchestra
     {
         parent::setUp();
 
+        if ($this->app->bound('themer')) {
+            app('themer')->reset();
+        }
+
         Facade::setFacadeApplication($this->app);
     }
 

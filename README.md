@@ -32,7 +32,7 @@ For full documentation, please visit [**alizharb.github.io/laravel-themer**](htt
 
 ---
 
-## 🚀 Installation
+## 📦 Installation
 
 Install the package via Composer:
 
@@ -40,11 +40,42 @@ Install the package via Composer:
 composer require alizharb/laravel-themer
 ```
 
-Publish the configuration file:
+### Quick Start (Recommended)
+
+Run the installation command to automatically set up Laravel Themer:
 
 ```bash
-php artisan vendor:publish --tag="themer-config"
+php artisan themer:install
 ```
+
+This interactive command will:
+
+- ✅ Publish the configuration file (`config/themer.php`)
+- ✅ Create the themes directory (default: `themes/`)
+- ✅ Optionally configure `vite.config.js` with the `themerLoader` for automatic theme asset bundling
+
+### Manual Configuration
+
+If you prefer manual setup or need more control, see the [Installation Guide](docs/installation.md) for detailed instructions on:
+
+- Publishing configuration files
+- Setting up Vite integration
+- Configuring theme paths and discovery rules
+
+---
+
+## 🔗 Related Packages
+
+Laravel Themer is part of a comprehensive modular ecosystem for Laravel applications:
+
+| Package                                                                              | Description                                                                                                                                       |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [**laravel-modular**](https://github.com/AlizHarb/laravel-modular)                   | Framework-agnostic modular architecture with zero-config autoloading and 29+ Artisan command overrides. **Required** for modular theme discovery. |
+| [**laravel-modular-livewire**](https://github.com/AlizHarb/laravel-modular-livewire) | Official Livewire 4 bridge providing automatic component discovery and registration within modules.                                               |
+| [**laravel-modular-filament**](https://github.com/AlizHarb/laravel-modular-filament) | Official Filament v5 bridge enabling admin panel integration with automatic resource discovery in modules.                                        |
+| [**laravel-hooks**](https://github.com/AlizHarb/laravel-hooks)                       | Universal extensibility and plugin system for Laravel 12+ applications with WordPress-style hooks and filters.                                    |
+
+These packages work seamlessly together to provide a complete modular development experience.
 
 ---
 

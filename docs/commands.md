@@ -2,6 +2,14 @@
 
 Laravel Themer provides a suite of Artisan commands to manage your themes effectively.
 
+## Installation
+
+Configure the package and Vite integration:
+
+```bash
+php artisan themer:install
+```
+
 ## Creating a Theme
 
 Generate a new theme with a standard directory structure:
@@ -11,6 +19,7 @@ php artisan theme:make "Dark Theme"
 ```
 
 Optional arguments:
+
 - `--parent=`: Specify a parent theme to inherit from.
 
 ## Activating a Theme
@@ -60,6 +69,7 @@ To clear the cache:
 ```bash
 php artisan theme:clear
 ```
+
 ## Making Components
 
 Create a theme-specific Livewire component:

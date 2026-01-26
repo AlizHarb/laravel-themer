@@ -37,11 +37,21 @@ class ThemeManager
     }
 
     /**
-     * Register a theme instance manually.
+     * Reset the theme manager state.
      */
+    public function reset(): void
+    {
+        $this->themes = new Collection();
+        $this->activeTheme = null;
+    }
+
     public function register(Theme $theme): void
     {
         $this->themes->put($theme->name, $theme);
+
+        // Also register by slug and folder name for flexible lookup
+        $this->themes->put($theme->slug, $theme);
+        $this->themes->put(basename($theme->path), $theme);
     }
 
     /**
@@ -54,11 +64,14 @@ class ThemeManager
         if (file_exists($cachePath)) {
             /** @var array<int, array{
              *     name: string,
+             *     slug?: string,
              *     path: string,
              *     assetPath?: string,
              *     parent?: string,
              *     config?: array<string, mixed>,
              *     version?: string,
+             *     author?: string|null,
+             *     authors?: array<int, array{name: string, email?: string, role?: string}>,
              *     hasViews?: bool,
              *     hasTranslations?: bool,
              *     hasProvider?: bool,
@@ -68,11 +81,14 @@ class ThemeManager
             foreach ($themes as $data) {
                 $this->register(new Theme(
                     $data['name'],
+                    $data['slug'] ?? Str::slug($data['name']), // Backward compatibility
                     $data['path'],
                     $data['assetPath'] ?? '',
                     $data['parent'] ?? null,
                     $data['config'] ?? [],
                     $data['version'] ?? '1.0.0',
+                    $data['author'] ?? null,
+                    $data['authors'] ?? [],
                     $data['hasViews'] ?? false,
                     $data['hasTranslations'] ?? false,
                     $data['hasProvider'] ?? false,
@@ -101,17 +117,29 @@ class ThemeManager
                 }
 
                 $name = (string) ($config['name'] ?? basename((string) $directory));
+                $slug = (string) ($config['slug'] ?? Str::slug($name)); // Read slug or generate from name
                 $assetPath = (string) ($config['asset_path'] ?? '');
                 $parent = $config['parent'] ?? null;
                 $version = (string) ($config['version'] ?? '1.0.0');
+                $author = $config['author'] ?? null;
+                /** @var array<int, array{name: string, email?: string, role?: string}> $authors */
+                $authors = $config['authors'] ?? [];
+
+                // Check for slug uniqueness
+                if ($this->themes->has($slug)) {
+                    throw new \RuntimeException("Theme slug '{$slug}' is already in use by theme '{$this->themes->get($slug)->name}'. Each theme must have a unique slug.");
+                }
 
                 $theme = new Theme(
                     name: $name,
+                    slug: $slug,
                     path: (string) $directory,
                     assetPath: $assetPath,
                     parent: $parent,
                     config: $config,
                     version: $version,
+                    author: $author,
+                    authors: $authors,
                     hasViews: is_dir($directory.'/resources/views'),
                     hasTranslations: is_dir($directory.'/resources/lang') || is_dir($directory.'/lang'),
                     hasProvider: file_exists($directory.'/ThemeServiceProvider.php'),
@@ -143,6 +171,60 @@ class ThemeManager
             if ($originalTheme) {
                 $this->set($originalTheme->name);
             }
+        }
+    }
+
+    /**
+     * Set up a theme-aware generator context (config overrides, namespaces, directories).
+     *
+     *
+     * @throws ThemeNotFoundException
+     */
+    public function useThemeGenerator(string $themeName, callable $callback): mixed
+    {
+        $theme = $this->themes->get($themeName);
+
+        if (!($theme instanceof Theme)) {
+            throw ThemeNotFoundException::make($themeName);
+        }
+
+        $themeLower = $theme->slug; // Use the theme's slug for Livewire namespace
+        $classPath = $theme->path.'/app/Livewire';
+        $viewPath = $theme->path.'/resources/views/livewire';
+
+        if (!is_dir($classPath)) {
+            mkdir($classPath, 0755, true);
+        }
+
+        if (!is_dir($viewPath)) {
+            mkdir($viewPath, 0755, true);
+        }
+
+        $originalNamespace = (string) config('livewire.class_namespace');
+        $originalViewPath = (string) config('livewire.view_path');
+
+        \Livewire\Livewire::addNamespace(
+            $themeLower,
+            $viewPath,
+            'Theme\\'.Str::studly($theme->name).'\\Livewire',
+            $classPath,
+            $viewPath
+        );
+
+        \Illuminate\Support\Facades\Config::set('livewire.class_namespace', 'Theme\\'.Str::studly($theme->name).'\\Livewire');
+        \Illuminate\Support\Facades\Config::set('livewire.view_path', $viewPath);
+
+        // Livewire 4 redirection
+        \Illuminate\Support\Facades\Config::set('livewire.component_locations', [$viewPath]);
+        \Illuminate\Support\Facades\Config::set('livewire.component_namespaces', [
+            'theme' => $viewPath,
+        ]);
+
+        try {
+            return $callback($theme);
+        } finally {
+            \Illuminate\Support\Facades\Config::set('livewire.class_namespace', $originalNamespace);
+            \Illuminate\Support\Facades\Config::set('livewire.view_path', $originalViewPath);
         }
     }
 

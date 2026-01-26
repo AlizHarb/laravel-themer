@@ -10,6 +10,11 @@
             "type": "string",
             "description": "The display name of the theme."
         },
+        "slug": {
+            "type": "string",
+            "description": "URL-safe identifier for the theme (lowercase, hyphens, no spaces).",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
         "asset_path": {
             "type": "string",
             "description": "Public path where assets are published (e.g. themes/my-theme)."
@@ -30,10 +35,23 @@
             "type": "string",
             "description": "Semantic version of the theme."
         },
+        "authors": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "email": { "type": "string", "format": "email" },
+                    "role": { "type": "string" }
+                },
+                "required": ["name"]
+            },
+            "description": "The authors of the theme."
+        },
         "extra": {
             "type": "object",
             "description": "Any additional custom configuration."
         }
     },
-    "required": ["name", "asset_path"]
+    "required": ["name", "slug", "asset_path"]
 }

@@ -17,7 +17,7 @@ it('can publish theme assets', function () {
 
     expect(File::exists($themePath.'/resources/assets/style.css'))->toBeTrue('Source file was not created');
 
-    $theme = new Theme('publishing-theme', $themePath);
+    $theme = new Theme('publishing-theme', 'publishing-theme', $themePath);
     $manager->register($theme);
 
     \Illuminate\Support\Facades\Config::set('themer.assets.symlink', false);
@@ -65,8 +65,8 @@ it('publishes all themes if none specified', function () {
     File::put($t1Path.'/resources/assets/f1.txt', '1');
     File::put($t2Path.'/resources/assets/f2.txt', '2');
 
-    $manager->register(new Theme('t1', $t1Path));
-    $manager->register(new Theme('t2', $t2Path));
+    $manager->register(new Theme('t1', 't1', $t1Path));
+    $manager->register(new Theme('t2', 't2', $t2Path));
 
     $this->artisan('theme:publish')
         ->assertExitCode(0);

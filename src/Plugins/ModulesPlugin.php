@@ -10,6 +10,7 @@ use AlizHarb\Themer\ThemeManager;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 /**
  * Plugin to handle theme discovery within modular structures.
@@ -62,16 +63,29 @@ final class ModulesPlugin implements ThemerPlugin
                     continue;
                 }
 
-                $name = (string) ($config['name'] ?? ('module-'.strtolower($module['name'])));
+                $name = (string) ($config['name'] ?? $module['name']);
+                $slug = (string) ($config['slug'] ?? Str::slug($name));
                 $assetPath = (string) ($config['asset_path'] ?? '');
-                $parent = isset($config['parent']) ? (string) $config['parent'] : null;
+                $parent = $config['parent'] ?? null;
+                $version = (string) ($config['version'] ?? '1.0.0');
+                $author = $config['author'] ?? null;
+                /** @var array<int, array{name: string, email?: string, role?: string}> $authors */
+                $authors = $config['authors'] ?? [];
 
                 $theme = new Theme(
                     name: $name,
+                    slug: $slug,
                     path: $themePath,
                     assetPath: $assetPath,
                     parent: $parent,
-                    config: $config
+                    config: $config,
+                    version: $version,
+                    author: $author,
+                    authors: $authors,
+                    hasViews: is_dir($themePath.'/resources/views'),
+                    hasTranslations: is_dir($themePath.'/resources/lang') || is_dir($themePath.'/lang'),
+                    hasProvider: file_exists($themePath.'/ThemeServiceProvider.php'),
+                    hasLivewire: is_dir($themePath.'/app/Livewire') || is_dir($themePath.'/resources/views/livewire')
                 );
 
                 $manager->register($theme);
