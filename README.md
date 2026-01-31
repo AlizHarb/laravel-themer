@@ -74,6 +74,8 @@ Laravel Themer is part of a comprehensive modular ecosystem for Laravel applicat
 | [**laravel-modular-livewire**](https://github.com/AlizHarb/laravel-modular-livewire) | Official Livewire 4 bridge providing automatic component discovery and registration within modules.                                               |
 | [**laravel-modular-filament**](https://github.com/AlizHarb/laravel-modular-filament) | Official Filament v5 bridge enabling admin panel integration with automatic resource discovery in modules.                                        |
 | [**laravel-hooks**](https://github.com/AlizHarb/laravel-hooks)                       | Universal extensibility and plugin system for Laravel 12+ applications with WordPress-style hooks and filters.                                    |
+| [**filament-themer-luncher**](https://github.com/AlizHarb/filament-themer-luncher)   | A comprehensive Filament v5 interface for managing, switching, and backing up themes.                                                             |
+| [**filament-modular-luncher**](https://github.com/AlizHarb/filament-modular-luncher) | A powerful Filament v5 manager for listing, toggling, and managing system modules.                                                                |
 
 These packages work seamlessly together to provide a complete modular development experience.
 

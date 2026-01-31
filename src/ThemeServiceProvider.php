@@ -4,26 +4,15 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer;
 
-use AlizHarb\Themer\Console\Commands\ActivateThemeCommand;
-use AlizHarb\Themer\Console\Commands\Laravel\ThemeComponentMakeCommand;
-use AlizHarb\Themer\Console\Commands\Laravel\ThemeLivewireLayoutCommand;
-use AlizHarb\Themer\Console\Commands\Laravel\ThemeLivewireMakeCommand;
-use AlizHarb\Themer\Console\Commands\Laravel\ThemeViewMakeCommand;
-use AlizHarb\Themer\Console\Commands\ListThemesCommand;
-use AlizHarb\Themer\Console\Commands\MakeThemeCommand;
-use AlizHarb\Themer\Console\Commands\PublishThemeAssetsCommand;
-use AlizHarb\Themer\Console\Commands\ThemeCacheCommand;
-use AlizHarb\Themer\Console\Commands\ThemeCheckCommand;
-use AlizHarb\Themer\Console\Commands\ThemeClearCommand;
-use AlizHarb\Themer\Console\Commands\ThemeInstallCommand;
+use AlizHarb\Themer\Console\Commands\{ActivateThemeCommand, ListThemesCommand, MakeThemeCommand, PublishThemeAssetsCommand, ThemeCacheCommand, ThemeCheckCommand, ThemeClearCommand, ThemeInstallCommand};
+use AlizHarb\Themer\Console\Commands\Laravel\{ThemeComponentMakeCommand, ThemeLivewireLayoutCommand, ThemeLivewireMakeCommand, ThemeViewMakeCommand};
 use AlizHarb\Themer\Contracts\ThemerPlugin;
 use AlizHarb\Themer\Plugins\ModulesPlugin;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use Livewire\Features\SupportConsoleCommands\Commands\LayoutCommand as LivewireLayoutCommand;
-use Livewire\Features\SupportConsoleCommands\Commands\MakeCommand as LivewireMakeCommand;
+use Livewire\Features\SupportConsoleCommands\Commands\{LayoutCommand as LivewireLayoutCommand, MakeCommand as LivewireMakeCommand};
 
 /**
  * The Service Provider for the Laravel Themer package.
@@ -114,9 +103,7 @@ class ThemeServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if ($this->app->runningInConsole()) {
-            $this->bootForConsole();
-        }
+        $this->bootForConsole();
 
         /** @var ThemeManager $manager */
         $manager = $this->app->make(ThemeManager::class);

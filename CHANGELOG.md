@@ -2,9 +2,19 @@
 
 All notable changes to `laravel-themer` will be documented in this file.
 
+
+## v1.1.2 - 2026-01-31
+
+### Fixed
+
+- **Blade Component Discovery**: Fixed a bug where `layouts::` and `pages::` view namespaces were not registered as Blade component prefixes, causing `<x-layouts::>` and `<x-pages::>` tags to fail.
+- **Theme Discovery**: Fixed a bug where themes registered by multiple keys (name, slug, path) were causing duplicate results in `ThemeManager::all()`.
+- **Command Registration**: Enabled theme commands (like `theme:cache`) to be available in both web and console environments, fixing failures when calling them via `Artisan::call()` in web controllers.
+
 ## v1.1.1 - 2026-01-26
 
 ### Added
+
 - **Independent Vite Loader**: Introduced `vite.themer.js` for clean, standalone asset discovery in `themes/`.
 - **New Install Command**: Added `themer:install` to automate Vite configuration with user consent.
 - **Improved Installation**: `themer:install` now provides manual configuration instructions if automatic setup is declined.

@@ -6,7 +6,7 @@ namespace AlizHarb\Themer;
 
 use AlizHarb\Themer\Exceptions\ThemeNotFoundException;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\{Blade, File};
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
@@ -327,6 +327,10 @@ class ThemeManager
 
         if (!empty($layoutPaths)) {
             app('view')->addNamespace('layouts', $layoutPaths);
+
+            foreach ($layoutPaths as $path) {
+                \Illuminate\Support\Facades\Blade::anonymousComponentPath($path, 'layouts');
+            }
         }
 
         $pagesPaths = collect($paths)
@@ -336,6 +340,10 @@ class ThemeManager
 
         if (!empty($pagesPaths)) {
             app('view')->addNamespace('pages', $pagesPaths);
+
+            foreach ($pagesPaths as $path) {
+                \Illuminate\Support\Facades\Blade::anonymousComponentPath($path, 'pages');
+            }
         }
 
         // 3. Register for dynamic resolution (Active -> Parent -> App)
@@ -476,7 +484,7 @@ class ThemeManager
      */
     public function all(): Collection
     {
-        return $this->themes;
+        return $this->themes->unique('name');
     }
 
     /**
