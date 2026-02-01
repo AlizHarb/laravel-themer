@@ -17,22 +17,23 @@ final class ThemeViewMakeCommand extends ViewMakeCommand
     /**
      * Get the destination view path.
      *
-     * @param  string  $name
+     * @param string $name
      */
     protected function getPath($name): string
     {
+        /** @var string|null $themeName */
         $themeName = $this->getTheme();
 
         if ($themeName === null || $themeName === '') {
-            return parent::getPath($name);
+            return (string) parent::getPath($name);
         }
 
         /** @var \AlizHarb\Themer\ThemeManager $manager */
         $manager = app(\AlizHarb\Themer\ThemeManager::class);
         $theme = $manager->all()->get($themeName);
 
-        if (!$theme) {
-            return parent::getPath($name);
+        if (! $theme) {
+            return (string) parent::getPath($name);
         }
 
         $viewPath = $theme->path.'/resources/views/';
@@ -44,5 +45,18 @@ final class ThemeViewMakeCommand extends ViewMakeCommand
         }
 
         return $viewPath.$normalized->toString().'.blade.php';
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}>
+     */
+    protected function getOptions(): array
+    {
+        /** @var array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}> $options */
+        $options = array_merge(parent::getOptions(), $this->getThemeOptions());
+
+        return $options;
     }
 }

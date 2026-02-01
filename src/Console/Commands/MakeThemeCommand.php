@@ -18,7 +18,7 @@ final class MakeThemeCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'theme:make {name : The name of the theme} {--parent= : Optional parent theme name}';
+    protected $signature = 'theme:make {name : The name of the theme} {--parent= : Optional parent theme name} {--description= : Theme description} {--author= : Theme author} {--tags= : Comma-separated tags} {--provider : Generate a ThemeServiceProvider}';
 
     /**
      * The console command description.
@@ -33,7 +33,7 @@ final class MakeThemeCommand extends Command
     public function handle(): int
     {
         /** @var string $name */
-        $name = (string) $this->argument('name');
+        $name = $this->argument('name');
         $slug = Str::slug($name);
 
         /** @var string $themesPath */
@@ -63,6 +63,7 @@ final class MakeThemeCommand extends Command
         File::makeDirectory($path.'/resources/views/livewire', 0755, true);
         File::makeDirectory($path.'/resources/assets/css', 0755, true);
         File::makeDirectory($path.'/resources/assets/js', 0755, true);
+        File::makeDirectory($path.'/resources/assets/screenshots', 0755, true);
         File::makeDirectory($path.'/lang', 0755, true);
 
         /** @var string|null $parent */
@@ -72,8 +73,18 @@ final class MakeThemeCommand extends Command
             '$schema' => 'https://raw.githubusercontent.com/alizharb/laravel-themer/main/resources/schemas/theme.schema.json',
             'name' => $name,
             'slug' => $slug,
+            'description' => $this->option('description') ?: 'A professional Laravel theme.',
+            'version' => '1.0.0',
+            'author' => $this->option('author'),
+            'tags' => is_string($this->option('tags')) ? explode(',', $this->option('tags')) : ['modern', 'responsive'],
             'asset_path' => 'themes/'.$slug,
             'parent' => $parent,
+            'screenshots' => [
+                'resources/assets/screenshots/screenshot-light.png',
+                'resources/assets/screenshots/screenshot-dark.png',
+            ],
+            'removable' => true,
+            'disableable' => true,
         ];
 
         File::put(
@@ -82,6 +93,67 @@ final class MakeThemeCommand extends Command
         );
 
         $this->createPlaceholderAssets($path);
+        $this->createAssets($path, $name, $slug);
+    }
+
+    /**
+     * Create the asset-related files (package.json, vite.config.js).
+     */
+    protected function createAssets(string $path, string $name, string $slug): void
+    {
+        $replace = [
+            'name' => $name,
+            'slug' => $slug,
+            'studlyName' => Str::studly($name),
+            'viteVersion' => $this->getViteVersion(),
+        ];
+
+        File::put($path.'/package.json', $this->getStubContents('package.json.stub', $replace));
+        File::put($path.'/vite.config.js', $this->getStubContents('vite.config.js.stub', $replace));
+
+        if ($this->option('provider')) {
+            File::put($path.'/ThemeServiceProvider.php', $this->getStubContents('ThemeServiceProvider.php.stub', $replace));
+        }
+    }
+
+    /**
+     * Get the Vite version from the root package.json.
+     */
+    protected function getViteVersion(): string
+    {
+        $rootPackageJson = base_path('package.json');
+
+        if (File::exists($rootPackageJson)) {
+            $content = json_decode((string) File::get($rootPackageJson), true);
+
+            if (is_array($content) && isset($content['devDependencies']['vite'])) {
+                return (string) $content['devDependencies']['vite'];
+            }
+        }
+
+        return '^6.0.0';
+    }
+
+    /**
+     * Get the contents of a stub file and replace placeholders.
+     *
+     * @param array<string, string> $replace
+     */
+    protected function getStubContents(string $stub, array $replace = []): string
+    {
+        $stubPath = __DIR__.'/../../../resources/stubs/'.$stub;
+
+        if (! File::exists($stubPath)) {
+            return '';
+        }
+
+        $content = (string) File::get($stubPath);
+
+        foreach ($replace as $key => $value) {
+            $content = str_replace(['{{'.$key.'}}', '{{ '.$key.' }}'], (string) $value, $content);
+        }
+
+        return $content;
     }
 
     /**
@@ -91,5 +163,10 @@ final class MakeThemeCommand extends Command
     {
         File::put($path.'/resources/assets/css/app.css', '/* Theme CSS */');
         File::put($path.'/resources/assets/js/app.js', '// Theme JS');
+
+        $screenshotPath = __DIR__.'/../../../resources/assets/screenshots';
+        if (File::isDirectory($screenshotPath)) {
+            File::copyDirectory($screenshotPath, $path.'/resources/assets/screenshots');
+        }
     }
 }

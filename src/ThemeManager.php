@@ -6,7 +6,8 @@ namespace AlizHarb\Themer;
 
 use AlizHarb\Themer\Exceptions\ThemeNotFoundException;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\{Blade, File};
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
@@ -61,44 +62,52 @@ class ThemeManager
     {
         $cachePath = $this->getCachePath();
 
-        if (file_exists($cachePath)) {
+        if (! app()->runningUnitTests() && file_exists($cachePath)) {
             /** @var array<int, array{
              *     name: string,
-             *     slug?: string,
+             *     slug: string,
              *     path: string,
-             *     assetPath?: string,
-             *     parent?: string,
-             *     config?: array<string, mixed>,
-             *     version?: string,
-             *     author?: string|null,
-             *     authors?: array<int, array{name: string, email?: string, role?: string}>,
-             *     hasViews?: bool,
-             *     hasTranslations?: bool,
-             *     hasProvider?: bool,
-             *     hasLivewire?: bool
+             *     assetPath: string,
+             *     parent: string|null,
+             *     config: array<string, mixed>,
+             *     version: string,
+             *     author: string|null,
+             *     authors: array<int, array{name: string, email?: string, role?: string}>,
+             *     hasViews: bool,
+             *     hasTranslations: bool,
+             *     hasProvider: bool,
+             *     hasLivewire: bool,
+             *     removable: bool,
+             *     disableable: bool,
+             *     screenshots: array<int, string>,
+             *     tags: array<int, string>
              * }> $themes */
             $themes = require $cachePath;
             foreach ($themes as $data) {
                 $this->register(new Theme(
                     $data['name'],
-                    $data['slug'] ?? Str::slug($data['name']), // Backward compatibility
+                    $data['slug'],
                     $data['path'],
-                    $data['assetPath'] ?? '',
-                    $data['parent'] ?? null,
-                    $data['config'] ?? [],
-                    $data['version'] ?? '1.0.0',
-                    $data['author'] ?? null,
-                    $data['authors'] ?? [],
-                    $data['hasViews'] ?? false,
-                    $data['hasTranslations'] ?? false,
-                    $data['hasProvider'] ?? false,
-                    $data['hasLivewire'] ?? false
+                    $data['assetPath'],
+                    $data['parent'],
+                    $data['config'],
+                    $data['version'],
+                    $data['author'],
+                    $data['authors'],
+                    $data['hasViews'],
+                    $data['hasTranslations'],
+                    $data['hasProvider'],
+                    $data['hasLivewire'],
+                    $data['removable'],
+                    $data['disableable'],
+                    $data['screenshots'],
+                    $data['tags']
                 ));
             }
 
             return;
         }
-        if (!File::isDirectory($path)) {
+        if (! File::isDirectory($path)) {
             return;
         }
 
@@ -112,7 +121,7 @@ class ThemeManager
                 /** @var array<string, mixed>|null $config */
                 $config = json_decode($json, true);
 
-                if (!is_array($config)) {
+                if (! is_array($config)) {
                     continue;
                 }
 
@@ -143,7 +152,11 @@ class ThemeManager
                     hasViews: is_dir($directory.'/resources/views'),
                     hasTranslations: is_dir($directory.'/resources/lang') || is_dir($directory.'/lang'),
                     hasProvider: file_exists($directory.'/ThemeServiceProvider.php'),
-                    hasLivewire: is_dir($directory.'/app/Livewire') || is_dir($directory.'/resources/views/livewire')
+                    hasLivewire: is_dir($directory.'/app/Livewire') || is_dir($directory.'/resources/views/livewire'),
+                    removable: (bool) ($config['removable'] ?? true),
+                    disableable: (bool) ($config['disableable'] ?? true),
+                    screenshots: (array) ($config['screenshots'] ?? []),
+                    tags: (array) ($config['tags'] ?? [])
                 );
 
                 $this->register($theme);
@@ -184,7 +197,7 @@ class ThemeManager
     {
         $theme = $this->themes->get($themeName);
 
-        if (!($theme instanceof Theme)) {
+        if (! ($theme instanceof Theme)) {
             throw ThemeNotFoundException::make($themeName);
         }
 
@@ -192,11 +205,11 @@ class ThemeManager
         $classPath = $theme->path.'/app/Livewire';
         $viewPath = $theme->path.'/resources/views/livewire';
 
-        if (!is_dir($classPath)) {
+        if (! is_dir($classPath)) {
             mkdir($classPath, 0755, true);
         }
 
-        if (!is_dir($viewPath)) {
+        if (! is_dir($viewPath)) {
             mkdir($viewPath, 0755, true);
         }
 
@@ -238,7 +251,7 @@ class ThemeManager
     {
         $theme = $this->themes->get($themeName);
 
-        if (!($theme instanceof Theme)) {
+        if (! ($theme instanceof Theme)) {
             throw ThemeNotFoundException::make($themeName);
         }
 
@@ -260,7 +273,7 @@ class ThemeManager
     }
 
     /**
-     * Register all theme resources (Views, Languages, Providers, Livewire, etc.)
+     * Register all theme resources (Views, Languages, Providers, Livewire, etc.).
      */
     protected function registerResources(Theme $theme): void
     {
@@ -282,7 +295,7 @@ class ThemeManager
 
     protected function registerThemeServiceProvider(Theme $theme): void
     {
-        if (!$theme->hasProvider) {
+        if (! $theme->hasProvider) {
             return;
         }
 
@@ -290,7 +303,12 @@ class ThemeManager
 
         require_once $providerPath;
 
-        if (class_exists('ThemeServiceProvider')) {
+        $studlyName = \Illuminate\Support\Str::studly($theme->name);
+        $namespacedClass = "Theme\\{$studlyName}\\ThemeServiceProvider";
+
+        if (class_exists($namespacedClass)) {
+            app()->register($namespacedClass);
+        } elseif (class_exists('ThemeServiceProvider')) {
             app()->register('ThemeServiceProvider');
         }
     }
@@ -319,30 +337,21 @@ class ThemeManager
         // 1. Register 'theme::' namespace
         app('view')->addNamespace('theme', $paths);
 
-        // 2. Register 'layouts::' and 'pages::' namespaces if they exist
-        $layoutPaths = collect($paths)
-            ->map(fn (string $p): string => $p.'/layouts')
-            ->filter(fn (string $p) => $this->directoryExists($p))
-            ->toArray();
+        // 2. Register Auto-Namespaces from config
+        $autoNamespaces = config('themer.auto_namespaces', []);
 
-        if (!empty($layoutPaths)) {
-            app('view')->addNamespace('layouts', $layoutPaths);
+        foreach ($autoNamespaces as $namespace => $relativePath) {
+            $nsPaths = collect($paths)
+                ->map(fn (string $p): string => $p.'/'.str_replace('resources/views/', '', $relativePath))
+                ->filter(fn (string $p) => $this->directoryExists($p))
+                ->toArray();
 
-            foreach ($layoutPaths as $path) {
-                \Illuminate\Support\Facades\Blade::anonymousComponentPath($path, 'layouts');
-            }
-        }
+            if (! empty($nsPaths)) {
+                app('view')->addNamespace($namespace, $nsPaths);
 
-        $pagesPaths = collect($paths)
-            ->map(fn (string $p): string => $p.'/livewire/pages')
-            ->filter(fn (string $p) => $this->directoryExists($p))
-            ->toArray();
-
-        if (!empty($pagesPaths)) {
-            app('view')->addNamespace('pages', $pagesPaths);
-
-            foreach ($pagesPaths as $path) {
-                \Illuminate\Support\Facades\Blade::anonymousComponentPath($path, 'pages');
+                foreach ($nsPaths as $path) {
+                    \Illuminate\Support\Facades\Blade::anonymousComponentPath($path, $namespace);
+                }
             }
         }
 
@@ -363,13 +372,13 @@ class ThemeManager
 
     protected function registerThemeLanguages(Theme $theme): void
     {
-        if (!$theme->hasTranslations) {
+        if (! $theme->hasTranslations) {
             return;
         }
 
         $langPath = $theme->path.'/resources/lang';
 
-        if (!$this->directoryExists($langPath)) {
+        if (! $this->directoryExists($langPath)) {
             $langPath = $theme->path.'/lang';
         }
 
@@ -391,6 +400,18 @@ class ThemeManager
     }
 
     /**
+     * Check if a specific theme is currently active.
+     */
+    public function isActive(string $themeName): bool
+    {
+        if (! $this->activeTheme) {
+            return false;
+        }
+
+        return $this->activeTheme->name === $themeName || $this->activeTheme->slug === $themeName;
+    }
+
+    /**
      * Get the parents of a theme.
      *
      * @return array<int, Theme>
@@ -399,12 +420,21 @@ class ThemeManager
     {
         $parents = [];
         $current = $theme;
+        $seen = [$theme->slug => true];
 
         while ($current->parent && $this->themes->has($current->parent)) {
             $parent = $this->themes->get($current->parent);
-            if (!($parent instanceof Theme)) {
+
+            if (! ($parent instanceof Theme)) {
                 break;
             }
+
+            // Loop Guard: Prevent infinite recursion if circular dependency exists
+            if (isset($seen[$parent->slug])) {
+                break;
+            }
+
+            $seen[$parent->slug] = true;
             $parents[] = $parent;
             $current = $parent;
         }
@@ -417,18 +447,27 @@ class ThemeManager
      */
     public function publishAssets(Theme $theme): void
     {
-        $themeAssetsPath = $theme->path.'/resources/assets';
-        if (!File::isDirectory($themeAssetsPath)) {
-            $themeAssetsPath = $theme->path.'/assets';
+        $themeAssetsPath = $theme->path.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'assets';
+        if (! File::isDirectory($themeAssetsPath)) {
+            $themeAssetsPath = $theme->path.DIRECTORY_SEPARATOR.'assets';
         }
 
-        if (!File::isDirectory($themeAssetsPath)) {
+        if (! File::isDirectory($themeAssetsPath)) {
             return;
         }
 
-        $publicPath = public_path(config('themer.assets.path', 'themes').'/'.$theme->name);
+        /** @var string $assetSubPath */
+        $assetSubPath = config('themer.assets.path', 'themes');
+        $publicPath = public_path($assetSubPath.DIRECTORY_SEPARATOR.$theme->name);
 
-        if (!File::isDirectory(dirname($publicPath))) {
+        // Performance Optimization: Check if symlink already exists and points to the right place
+        if (config('themer.assets.symlink', true) && function_exists('symlink')) {
+            if (is_link($publicPath) && readlink($publicPath) === $themeAssetsPath) {
+                return;
+            }
+        }
+
+        if (! File::isDirectory(dirname($publicPath))) {
             File::makeDirectory(dirname($publicPath), 0755, true);
         }
 
@@ -443,6 +482,7 @@ class ThemeManager
 
             @symlink($themeAssetsPath, $publicPath);
         } else {
+            // Only copy if files changed or directory missing
             File::copyDirectory($themeAssetsPath, $publicPath);
         }
     }
@@ -462,7 +502,7 @@ class ThemeManager
      */
     public function getThemeViewPaths(): array
     {
-        if (!$this->activeTheme instanceof \AlizHarb\Themer\Theme) {
+        if (! $this->activeTheme instanceof \AlizHarb\Themer\Theme) {
             return [];
         }
 
@@ -488,11 +528,19 @@ class ThemeManager
     }
 
     /**
+     * Find a theme by name, slug, or directory name.
+     */
+    public function find(string $themeName): ?Theme
+    {
+        return $this->themes->get($themeName);
+    }
+
+    /**
      * Register theme-specific Livewire support.
      */
     protected function registerThemeLivewire(Theme $theme): void
     {
-        if (!class_exists(Livewire::class)) {
+        if (! class_exists(Livewire::class)) {
             return;
         }
 
@@ -511,18 +559,19 @@ class ThemeManager
             $livewireViewPath
         );
 
-        // 2. Register Global Alias Baseline
-        if (File::isDirectory($theme->path.'/resources/views/livewire/pages')) {
-            Livewire::addNamespace('pages', $theme->path.'/resources/views/livewire/pages', $livewireNamespace.'\\Pages', $theme->path.'/app/Livewire/Pages', $theme->path.'/resources/views/livewire/pages');
-        }
-
-        if (File::isDirectory($theme->path.'/resources/views/layouts')) {
-            Livewire::addNamespace('layouts', $theme->path.'/resources/views/layouts', $livewireNamespace.'\\Layouts', $theme->path.'/app/Livewire/Layouts', $theme->path.'/resources/views/layouts');
+        // 2. Register Config-Based Alias Baseline
+        $autoNamespaces = config('themer.auto_namespaces', []);
+        foreach ($autoNamespaces as $alias => $relativePath) {
+            $fullPath = $theme->path.'/'.$relativePath;
+            if (File::isDirectory($fullPath)) {
+                $aliasNamespace = $livewireNamespace.'\\'.Str::studly($alias);
+                Livewire::addNamespace($alias, $fullPath, $aliasNamespace, $theme->path.'/app/Livewire/'.Str::studly($alias), $fullPath);
+            }
         }
 
         // 3. Register Global Alias Resolver
         static $resolverRegistered = false;
-        if (!$resolverRegistered) {
+        if (! $resolverRegistered) {
             $this->registerThemeLivewireResolver();
             $resolverRegistered = true;
         }
@@ -534,7 +583,7 @@ class ThemeManager
     protected function registerThemeLivewireResolver(): void
     {
         Livewire::resolveMissingComponent(function (string $name) {
-            if (!$this->activeTheme instanceof \AlizHarb\Themer\Theme) {
+            if (! $this->activeTheme instanceof \AlizHarb\Themer\Theme) {
                 return null;
             }
 
@@ -572,15 +621,9 @@ class ThemeManager
                     return null;
                 }
 
-                $themes = [$this->activeTheme];
-                if ($this->activeTheme->parent && $this->themes->has($this->activeTheme->parent)) {
-                    $parent = $this->themes->get($this->activeTheme->parent);
-                    if ($parent instanceof Theme) {
-                        $themes[] = $parent;
-                    }
-                }
+                $themes = array_merge([$this->activeTheme], $this->getThemeParents($this->activeTheme));
 
-                /** @var mixed $livewireFactory */
+                /** @var \Livewire\Factory\Factory $livewireFactory */
                 $livewireFactory = app('livewire.factory');
 
                 foreach ($themes as $theme) {
@@ -603,7 +646,7 @@ class ThemeManager
 
                 if ($alias === 'pages' || $alias === 'layouts') {
                     $aliasesToCheck = [$alias];
-                } elseif (!$isThemeNamespaced) {
+                } elseif (! $isThemeNamespaced) {
                     $aliasesToCheck = ['pages', 'layouts'];
                 } else {
                     $aliasesToCheck = [];
@@ -612,8 +655,9 @@ class ThemeManager
                 foreach ($aliasesToCheck as $currentAlias) {
                     $internalAlias = '__themer_app_'.$currentAlias;
 
+                    /** @var array<string, bool> $internalRegistered */
                     static $internalRegistered = [];
-                    if (!isset($internalRegistered[$currentAlias])) {
+                    if (! isset($internalRegistered[$currentAlias])) {
                         $appPath = $currentAlias === 'pages'
                             ? resource_path('views/livewire/pages')
                             : resource_path('views/layouts');
@@ -627,6 +671,8 @@ class ThemeManager
                     if (isset($internalRegistered[$currentAlias])) {
                         try {
                             $targetPath = $internalAlias.'::'.$searchName;
+                            /** @var \Livewire\Factory\Factory $livewireFactory */
+                            $livewireFactory = app('livewire.factory');
                             $class = $livewireFactory->resolveComponentClass($targetPath);
                             if ($class) {
                                 unset($isResolving[$name]);
@@ -650,6 +696,12 @@ class ThemeManager
      */
     protected function directoryExists(string $path): bool
     {
-        return app()->isProduction() ? true : is_dir($path);
+        static $cache = [];
+
+        if (! isset($cache[$path])) {
+            $cache[$path] = File::isDirectory($path);
+        }
+
+        return $cache[$path];
     }
 }

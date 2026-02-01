@@ -7,6 +7,7 @@ namespace AlizHarb\Themer\Console\Commands;
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 
 class ThemeCheckCommand extends Command
 {
@@ -36,7 +37,7 @@ class ThemeCheckCommand extends Command
 
         foreach ($themes as $theme) {
             // 1. Check Parent Existence
-            if ($theme->parent && !$themes->has($theme->parent)) {
+            if ($theme->parent && ! $themes->has($theme->parent)) {
                 $this->components->error("Theme [{$theme->name}] requires missing parent theme [{$theme->parent}]");
                 $status = self::FAILURE;
             }
@@ -50,9 +51,9 @@ class ThemeCheckCommand extends Command
 
             // 3. Check for Required Modules (laravel-modular)
             $requires = $theme->config['requires'] ?? [];
-            if (!empty($requires) && is_array($requires)) {
+            if (! empty($requires) && is_array($requires)) {
                 foreach ($requires as $moduleName) {
-                    if (!app()->bound('modular')) {
+                    if (! app()->bound('modular')) {
                         $this->components->warn("Theme [{$theme->name}] requires module [{$moduleName}] but laravel-modular is not installed.");
 
                         continue;
@@ -60,19 +61,43 @@ class ThemeCheckCommand extends Command
 
                     /** @var \AlizHarb\Modular\ModuleRegistry $registry */
                     $registry = app('modular');
+                    /** @var array<int, array{name: string, path: string, namespace: string, enabled?: bool}> $modules */
                     $modules = $registry->getModules();
 
                     /** @var array{name: string, path: string, namespace: string, enabled?: bool}|null $module */
                     $module = collect($modules)->firstWhere('name', $moduleName);
 
-                    if (!$module) {
+                    if (! $module) {
                         $this->components->error("Theme [{$theme->name}] requires missing module [{$moduleName}]");
                         $status = self::FAILURE;
-                    } elseif (!($module['enabled'] ?? true)) {
+                    } elseif (! ($module['enabled'] ?? true)) {
                         $this->components->error("Theme [{$theme->name}] requires module [{$moduleName}] but it is disabled.");
                         $status = self::FAILURE;
                     }
                 }
+            }
+
+            // 4. Asset Health Checks
+            if (! $theme->parent) {
+                if (! File::exists($theme->path.'/package.json')) {
+                    $this->components->warn("Theme [{$theme->name}] is missing [package.json]. Run theme:upgrade to fix.");
+                }
+                if (! File::exists($theme->path.'/vite.config.js')) {
+                    $this->components->warn("Theme [{$theme->name}] is missing [vite.config.js]. Run theme:upgrade to fix.");
+                }
+            }
+
+            // 5. Screenshot validation
+            foreach ($theme->screenshots as $screenshot) {
+                if (! File::exists($theme->path.'/'.$screenshot)) {
+                    $this->components->error("Theme [{$theme->name}] references missing screenshot [{$screenshot}]");
+                    $status = self::FAILURE;
+                }
+            }
+
+            // 6. Optimization Tips (NPM Workspaces)
+            if (File::isDirectory($theme->path.'/node_modules')) {
+                $this->components->warn("Theme [{$theme->name}] contains its own [node_modules]. Recommendation: Remove it and use NPM Workspaces for faster builds and zero storage overhead.");
             }
         }
 
@@ -86,12 +111,12 @@ class ThemeCheckCommand extends Command
     /**
      * Recursively check for circular dependencies.
      *
-     * @param  \Illuminate\Support\Collection<string, Theme>  $themes
-     * @param  array<int, string>  &$path
+     * @param \Illuminate\Support\Collection<string, Theme> $themes
+     * @param array<int, string> &$path
      */
     protected function hasCircularDependency(Theme $theme, \Illuminate\Support\Collection $themes, array &$path): bool
     {
-        if (!$theme->parent) {
+        if (! $theme->parent) {
             return false;
         }
 

@@ -15,7 +15,8 @@ it('resolves layout using themer', function () {
     /** @var ThemeManager $manager */
     $manager = app('themer');
 
-    $component = new class () extends Component {
+    $component = new class() extends Component
+    {
         use HasThemeLayout;
 
         public string $layout = 'layouts.app';
@@ -26,7 +27,7 @@ it('resolves layout using themer', function () {
 
     // With active theme
     $tempPath = __DIR__.'/../fixtures/views';
-    if (!File::exists($tempPath.'/layouts')) {
+    if (! File::exists($tempPath.'/layouts')) {
         File::makeDirectory($tempPath.'/layouts', 0755, true);
         File::put($tempPath.'/layouts/app.blade.php', 'Theme layout content');
     }

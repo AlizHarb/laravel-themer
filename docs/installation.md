@@ -3,88 +3,86 @@
 ## Requirements
 
 - PHP 8.2 or higher
-- Laravel 11.0 or higher
+- Laravel 11.0 or 12.0
+- Composer
 
-## Composer
+## Installation Steps
 
-Install the package via Composer:
+### 1. Install via Composer
 
 ```bash
 composer require alizharb/laravel-themer
 ```
 
-## Quick Start
+The package will automatically register its service provider via Laravel's package discovery.
 
-The easiest way to install and configure Laravel Themer is using the `themer:install` command:
+### 2. Run the Install Command
 
 ```bash
 php artisan themer:install
 ```
 
 This command will:
+- Publish the configuration file to `config/themer.php`
+- Create the `themes/` directory in your project root
+- Configure NPM Workspaces in your root `package.json` for optimized theme asset management
+- Set up Vite integration for theme asset compilation
 
-- Publish the configuration file.
-- Create the themes directory.
-- Optionally configure `vite.config.js` with the `themerLoader`.
+### 3. Configure Your Environment
 
-## Manual Configuration
+Add the active theme to your `.env` file:
 
-If you prefer to configure Laravel Themer manually or need more control over the setup process:
+```env
+THEME=default
+```
 
-### 1. Publish Configuration
-
-Publish the configuration file to customize the package behavior:
+### 4. Create Your First Theme
 
 ```bash
-php artisan vendor:publish --tag="themer-config"
+php artisan theme:make MyTheme --description="My awesome theme" --author="Your Name"
 ```
 
-This will create a `config/themer.php` file where you can configure:
+This generates a complete theme structure with:
+- `theme.json` metadata file
+- View directories (`resources/views`)
+- Asset directories (`resources/assets`)
+- Language files (`lang`)
+- Livewire component directories (`app/Livewire`)
+- `package.json` and `vite.config.js` for asset compilation
 
-- **themes_path**: Directory where themes are stored (default: `base_path('themes')`)
-- **active**: Default active theme name
-- **assets**: Asset publishing and symlinking settings
-- **discovery**: Discovery rules for themes and automatic registration
-
-### 2. Create Themes Directory
-
-Create the themes directory manually:
+### 5. Activate Your Theme
 
 ```bash
-mkdir -p themes
+php artisan theme:activate MyTheme
 ```
 
-### 3. Configure Vite (Optional but Recommended)
+This will:
+- Update your `.env` file with `THEME=mytheme`
+- Publish theme assets to `public/themes/mytheme`
+- Clear theme caches
 
-For automatic theme asset bundling, add the `themerLoader` to your `vite.config.js`:
+## Verification
 
-```javascript
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import { themerLoader } from './vite.themer.js';
-
-export default defineConfig({
-    plugins: [
-        laravel({
-            input: [
-                'resources/css/app.css',
-                'resources/js/app.js',
-            ],
-            refresh: true,
-        }),
-        themerLoader(), // Add this line
-    ],
-});
-```
-
-The `vite.themer.js` file is automatically created when you run `themer:install`, or you can create it manually by copying from the package's `resources/stubs/vite.themer.js.stub` file.
-
-### 4. Verify Installation
-
-Check that everything is configured correctly:
+To verify your installation:
 
 ```bash
 php artisan theme:list
 ```
 
-This command should run without errors and show an empty list (or any existing themes).
+You should see your newly created theme listed with its metadata.
+
+## Optional: Generate Service Provider
+
+If you need custom theme logic (bindings, events, middleware), generate a namespaced service provider:
+
+```bash
+php artisan theme:make MyTheme --provider
+```
+
+This creates `themes/mytheme/ThemeServiceProvider.php` with namespace `Theme\MyTheme\ThemeServiceProvider`.
+
+## Next Steps
+
+- [Configuration Options](configuration.md)
+- [Theme Structure](structure.md)
+- [Commands Reference](commands.md)

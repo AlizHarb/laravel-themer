@@ -6,7 +6,6 @@ namespace AlizHarb\Themer\Console\Commands\Laravel;
 
 use AlizHarb\Themer\Traits\HasThemeOption;
 use Livewire\Features\SupportConsoleCommands\Commands\MakeCommand;
-use Livewire\Livewire;
 
 /**
  * Custom Livewire MakeCommand that supports themes.
@@ -20,6 +19,7 @@ final class ThemeLivewireMakeCommand extends MakeCommand
      */
     public function handle(): int
     {
+        /** @var string|null $themeName */
         $themeName = $this->getTheme();
 
         if ($themeName) {
@@ -57,7 +57,7 @@ final class ThemeLivewireMakeCommand extends MakeCommand
         $manager = app(\AlizHarb\Themer\ThemeManager::class);
         $theme = $manager->all()->get($themeName);
 
-        if (!$theme) {
+        if (! $theme) {
             return;
         }
 
@@ -73,7 +73,7 @@ final class ThemeLivewireMakeCommand extends MakeCommand
         // Move the file if it exists in the wrong location
         if (file_exists($actualClassPath) && $actualClassPath !== $targetClassPath) {
             $targetDir = dirname($targetClassPath);
-            if (!is_dir($targetDir)) {
+            if (! is_dir($targetDir)) {
                 mkdir($targetDir, 0755, true);
             }
             rename($actualClassPath, $targetClassPath);
@@ -82,8 +82,24 @@ final class ThemeLivewireMakeCommand extends MakeCommand
             $httpLivewireDir = dirname($actualClassPath);
             if (is_dir($httpLivewireDir) && count(scandir($httpLivewireDir) ?: []) === 2) {
                 @rmdir($httpLivewireDir);
-                @rmdir(dirname($httpLivewireDir)); // Try to remove Http dir if empty
+                $parentDir = dirname($httpLivewireDir);
+                if (is_dir($parentDir) && count(scandir($parentDir) ?: []) === 2) {
+                    @rmdir($parentDir); // Try to remove Http dir if empty
+                }
             }
         }
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}>
+     */
+    protected function getOptions(): array
+    {
+        /** @var array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}> $options */
+        $options = array_merge(parent::getOptions(), $this->getThemeOptions());
+
+        return $options;
     }
 }

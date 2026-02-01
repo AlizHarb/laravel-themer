@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\File;
 
 it('extracts version from theme.json', function () {
     $tempDir = __DIR__.'/../temp/version-test';
-    if (!is_dir($tempDir)) {
+    if (! is_dir($tempDir)) {
         mkdir($tempDir, 0777, true);
     }
 
@@ -33,7 +33,7 @@ it('extracts version from theme.json', function () {
 
 it('defaults to 1.0.0 if version is missing', function () {
     $tempDir = __DIR__.'/../temp/default-version-test';
-    if (!is_dir($tempDir)) {
+    if (! is_dir($tempDir)) {
         mkdir($tempDir, 0777, true);
     }
 

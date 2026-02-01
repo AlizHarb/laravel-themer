@@ -34,7 +34,7 @@ final class ThemeLivewireLayoutCommand extends LayoutCommand
             $manager = app(\AlizHarb\Themer\ThemeManager::class);
             $theme = $manager->all()->get($themeName);
 
-            if (!$theme) {
+            if (! $theme) {
                 $this->components->error(sprintf('Theme [%s] not found.', $themeName));
 
                 return self::FAILURE;

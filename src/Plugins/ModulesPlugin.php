@@ -38,7 +38,7 @@ final class ModulesPlugin implements ThemerPlugin
      */
     public function boot(Application $app, ThemeManager $manager, Collection $themes): void
     {
-        if (!class_exists('AlizHarb\Modular\ModuleRegistry')) {
+        if (! class_exists('AlizHarb\Modular\ModuleRegistry')) {
             return;
         }
 
@@ -59,7 +59,7 @@ final class ModulesPlugin implements ThemerPlugin
                 /** @var array<string, mixed>|null $config */
                 $config = json_decode($json, true);
 
-                if (!is_array($config)) {
+                if (! is_array($config)) {
                     continue;
                 }
 

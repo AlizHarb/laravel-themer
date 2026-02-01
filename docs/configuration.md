@@ -1,27 +1,146 @@
 # Configuration
 
-Publish the configuration file to customize the package:
+The configuration file is located at `config/themer.php` after running `php artisan themer:install`.
 
-```bash
-php artisan vendor:publish --tag="themer-config"
+## Configuration Options
+
+### Themes Path
+
+```php
+'themes_path' => base_path('themes'),
 ```
 
-## Options
+The root directory where themes are stored. Laravel Themer will scan this directory for `theme.json` files.
 
-### `themes_path`
-The directory where your themes are stored. Defaults to `base_path('themes')`.
+### Active Theme
 
-### `active`
-The name of the theme to be active by default. Can be overridden via `.env`.
+```php
+'active' => (string) env('THEME', 'default'),
+```
 
-### `assets`
-Configuration for asset publishing.
-- `path`: The subdirectory in `public/` to publish to (e.g., `themes` -> `public/themes`).
-- `publish_on_activate`: Automatically publish assets when `theme:activate` is run.
-- `symlink`: Use symlinks instead of copying (recommended for dev).
+The currently active theme. This is typically set via the `THEME` environment variable in `.env`.
 
-### `discovery`
-- `scan_modules`: Set to `true` to enable discovery of themes inside `modules/` (requires `laravel-modular`).
+**Example:**
+```env
+THEME=mytheme
+```
 
-> [!TIP]
-> Use `php artisan theme:cache` in production to optimize performance. This generates a static registry that eliminates all filesystem hits during the boot process.
+### Asset Configuration
+
+```php
+'assets' => [
+    'path' => 'themes',
+    'publish_on_activate' => true,
+    'symlink' => (bool) env('THEMER_SYMLINK', true),
+],
+```
+
+#### `path`
+The public directory suffix where theme assets will be published (e.g., `public/themes`).
+
+#### `publish_on_activate`
+Whether to automatically publish assets when a theme is activated. Set to `false` if you prefer manual asset publishing.
+
+#### `symlink`
+Whether to use symlinks instead of copying files. Symlinks are faster and save disk space, but require proper server permissions.
+
+**Production Tip:** Set `THEMER_SYMLINK=false` in production if your deployment process doesn't support symlinks.
+
+### Discovery Configuration
+
+```php
+'discovery' => [
+    'filename' => 'theme.json',
+    'scan_modules' => true,
+],
+```
+
+#### `filename`
+The metadata filename to look for when scanning for themes.
+
+#### `scan_modules`
+Whether to scan Laravel Modular modules for themes. Requires `alizharb/laravel-modular`.
+
+### Auto-Namespaces
+
+```php
+'auto_namespaces' => [
+    'layouts' => 'resources/views/layouts',
+    'pages' => 'resources/views/livewire/pages',
+],
+```
+
+Automatically register view and Livewire namespaces for common theme directories. These work alongside Livewire 4's native `component_namespaces` configuration.
+
+**Usage:**
+```blade
+{{-- Resolves to active theme's layouts directory --}}
+<x-layouts::app>
+    {{-- Content --}}
+</x-layouts::app>
+
+{{-- Resolves to active theme's pages directory --}}
+<livewire:pages::home />
+```
+
+**Customization:**
+Add your own auto-namespaces:
+
+```php
+'auto_namespaces' => [
+    'layouts' => 'resources/views/layouts',
+    'pages' => 'resources/views/livewire/pages',
+    'components' => 'resources/views/components',
+    'partials' => 'resources/views/partials',
+],
+```
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `THEME` | `default` | Active theme slug |
+| `THEMER_SYMLINK` | `true` | Use symlinks for assets |
+
+## Advanced Configuration
+
+### Custom Themes Path
+
+If you want to store themes in a different location:
+
+```php
+'themes_path' => storage_path('themes'),
+```
+
+### Multiple Theme Paths
+
+For scanning multiple directories (requires custom implementation):
+
+```php
+// In a service provider
+$manager = app('themer');
+$manager->scan(base_path('themes'));
+$manager->scan(base_path('vendor-themes'));
+```
+
+### Disable Auto-Publishing
+
+For manual control over asset publishing:
+
+```php
+'assets' => [
+    'publish_on_activate' => false,
+],
+```
+
+Then manually publish when needed:
+
+```bash
+php artisan theme:publish mytheme
+```
+
+## Next Steps
+
+- [Theme Structure](structure.md)
+- [Commands Reference](commands.md)
+- [Asset Management](assets.md)

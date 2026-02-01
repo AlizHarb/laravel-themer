@@ -4,15 +4,32 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer;
 
-use AlizHarb\Themer\Console\Commands\{ActivateThemeCommand, ListThemesCommand, MakeThemeCommand, PublishThemeAssetsCommand, ThemeCacheCommand, ThemeCheckCommand, ThemeClearCommand, ThemeInstallCommand};
-use AlizHarb\Themer\Console\Commands\Laravel\{ThemeComponentMakeCommand, ThemeLivewireLayoutCommand, ThemeLivewireMakeCommand, ThemeViewMakeCommand};
+use AlizHarb\Themer\Console\Commands\ActivateThemeCommand;
+use AlizHarb\Themer\Console\Commands\Laravel\ThemeComponentMakeCommand;
+use AlizHarb\Themer\Console\Commands\Laravel\ThemeLivewireLayoutCommand;
+use AlizHarb\Themer\Console\Commands\Laravel\ThemeLivewireMakeCommand;
+use AlizHarb\Themer\Console\Commands\Laravel\ThemeViewMakeCommand;
+use AlizHarb\Themer\Console\Commands\ListThemesCommand;
+use AlizHarb\Themer\Console\Commands\MakeThemeCommand;
+use AlizHarb\Themer\Console\Commands\PublishThemeAssetsCommand;
+use AlizHarb\Themer\Console\Commands\ThemeBuildCommand;
+use AlizHarb\Themer\Console\Commands\ThemeCacheCommand;
+use AlizHarb\Themer\Console\Commands\ThemeCheckCommand;
+use AlizHarb\Themer\Console\Commands\ThemeClearCommand;
+use AlizHarb\Themer\Console\Commands\ThemeCloneCommand;
+use AlizHarb\Themer\Console\Commands\ThemeDeleteCommand;
+use AlizHarb\Themer\Console\Commands\ThemeDevCommand;
+use AlizHarb\Themer\Console\Commands\ThemeInstallCommand;
+use AlizHarb\Themer\Console\Commands\ThemeNpmCommand;
+use AlizHarb\Themer\Console\Commands\ThemeUpgradeCommand;
 use AlizHarb\Themer\Contracts\ThemerPlugin;
 use AlizHarb\Themer\Plugins\ModulesPlugin;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use Livewire\Features\SupportConsoleCommands\Commands\{LayoutCommand as LivewireLayoutCommand, MakeCommand as LivewireMakeCommand};
+use Livewire\Features\SupportConsoleCommands\Commands\LayoutCommand as LivewireLayoutCommand;
+use Livewire\Features\SupportConsoleCommands\Commands\MakeCommand as LivewireMakeCommand;
 
 /**
  * The Service Provider for the Laravel Themer package.
@@ -58,7 +75,9 @@ class ThemeServiceProvider extends ServiceProvider
 
         $this->app->alias(ThemeManager::class, 'themer');
 
-        $this->app['router']->aliasMiddleware('theme', Http\Middleware\SetTheme::class);
+        /** @var \Illuminate\Routing\Router $router */
+        $router = app('router');
+        $router->aliasMiddleware('theme', Http\Middleware\SetTheme::class);
 
         // Register default plugins
         self::registerPlugin(new ModulesPlugin());
@@ -158,6 +177,12 @@ class ThemeServiceProvider extends ServiceProvider
             ThemeCacheCommand::class,
             ThemeClearCommand::class,
             ThemeCheckCommand::class,
+            ThemeUpgradeCommand::class,
+            ThemeNpmCommand::class,
+            ThemeDevCommand::class,
+            ThemeBuildCommand::class,
+            ThemeDeleteCommand::class,
+            ThemeCloneCommand::class,
         ]);
     }
 
@@ -168,6 +193,10 @@ class ThemeServiceProvider extends ServiceProvider
     {
         Blade::directive('vite', function (string $expression): string {
             return sprintf('<?php echo %s::vite(%s); ?>', \AlizHarb\Themer\ThemeAsset::class, $expression);
+        });
+
+        Blade::directive('theme_include', function (string $expression): string {
+            return "<?php echo \$__env->make('theme::' . str_replace(['\'', '\"'], '', $expression), \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>";
         });
     }
 }

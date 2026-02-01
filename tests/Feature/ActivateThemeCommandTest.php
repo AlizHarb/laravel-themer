@@ -16,7 +16,7 @@ it('can activate a theme', function () {
 
     // Use a temp env file
     $tempDir = __DIR__.'/../temp';
-    if (!is_dir($tempDir)) {
+    if (! is_dir($tempDir)) {
         mkdir($tempDir, 0777, true);
     }
 

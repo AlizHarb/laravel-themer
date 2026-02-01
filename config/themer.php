@@ -48,4 +48,19 @@ return [
         'filename' => 'theme.json',
         'scan_modules' => true,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Theme Auto-Namespaces
+    |--------------------------------------------------------------------------
+    |
+    | Automatically register view and Livewire namespaces for common theme
+    | directories. These are applied to each theme during activation and
+    | work alongside Livewire's native component_namespaces configuration.
+    |
+    */
+    'auto_namespaces' => [
+        'layouts' => 'resources/views/layouts',
+        'pages' => 'resources/views/livewire/pages',
+    ],
 ];

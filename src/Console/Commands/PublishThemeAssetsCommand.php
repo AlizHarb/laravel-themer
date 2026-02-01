@@ -18,7 +18,7 @@ final class PublishThemeAssetsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'theme:publish {theme? : The name of the theme to publish assets for}';
+    protected $name = 'theme:publish';
 
     /**
      * The console command description.
@@ -38,7 +38,7 @@ final class PublishThemeAssetsCommand extends Command
         if ($themeName) {
             $theme = $manager->all()->get($themeName);
 
-            if (!$theme instanceof Theme) {
+            if (! $theme instanceof Theme) {
                 $this->components->error(sprintf('Theme [%s] not found.', $themeName));
 
                 return self::FAILURE;
@@ -63,5 +63,30 @@ final class PublishThemeAssetsCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}>
+     */
+    protected function getOptions(): array
+    {
+        /** @var array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}> $options */
+        $options = parent::getOptions();
+
+        return $options;
+    }
+
+    /**
+     * Get the console command arguments.
+     *
+     * @return array<int, array{0: string, 1: int, 2: string, 3: mixed|null}>
+     */
+    protected function getArguments(): array
+    {
+        return [
+            ['theme', \Symfony\Component\Console\Input\InputArgument::OPTIONAL, 'The name of the theme to publish assets for', null],
+        ];
     }
 }

@@ -40,7 +40,7 @@ it('registers theme views when set', function () {
     $manager = new ThemeManager();
     $themePath = __DIR__.'/../fixtures/theme';
 
-    if (!file_exists($themePath)) {
+    if (! file_exists($themePath)) {
         mkdir($themePath.'/resources/views', 0777, true);
     }
 

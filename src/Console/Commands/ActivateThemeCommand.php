@@ -37,7 +37,7 @@ final class ActivateThemeCommand extends Command
         /** @var string|null $themeName */
         $themeName = $this->argument('theme');
 
-        if (!$themeName) {
+        if (! $themeName) {
             /** @var array<int, string> $themes */
             $themes = $manager->all()
                 ->map(fn ($theme) => $theme->name)
@@ -56,9 +56,9 @@ final class ActivateThemeCommand extends Command
         }
 
         try {
-            $manager->set($themeName);
+            $manager->set((string) $themeName);
 
-            $this->updateEnvironmentFile($themeName);
+            $this->updateEnvironmentFile((string) $themeName);
 
             $this->components->info(sprintf('Theme [%s] activated successfully.', $themeName));
 
@@ -85,7 +85,7 @@ final class ActivateThemeCommand extends Command
     {
         $path = app()->environmentFilePath();
 
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             return;
         }
 

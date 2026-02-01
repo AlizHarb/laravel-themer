@@ -4,7 +4,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/alizharb/laravel-themer.svg?style=flat-square)](https://packagist.org/packages/alizharb/laravel-themer)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/alizharb/laravel-themer/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/alizharb/laravel-themer/actions?query=workflow%3ATests+branch%3Amain)
-[![GitHub PHPStan Action Status](https://img.shields.io/github/actions/workflow/status/alizharb/laravel-themer/phpstan.yml?branch=main&label=phpstan&style=flat-square)](https://github.com/alizharb/laravel-themer/actions?query=workflow%3APHPStan+branch%3Amain)
+[![GitHub PHPStan Action Status](https://img.shields.io/github/actions/workflow/status/alizharb/laravel-themer/tests.yml?branch=main&label=phpstan&style=flat-square)](https://github.com/alizharb/laravel-themer/actions?query=workflow%3ATests+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/alizharb/laravel-themer.svg?style=flat-square)](https://packagist.org/packages/alizharb/laravel-themer)
 [![Licence](https://img.shields.io/packagist/l/alizharb/laravel-themer.svg?style=flat-square)](https://packagist.org/packages/alizharb/laravel-themer)
 
@@ -12,21 +12,24 @@
 
 ## ✨ Features
 
-- 🎭 **Theme Management**: Create, activate, and manage themes effortlessly with full multi-level inheritance support.
+- 🏗️ **Independent Vite Builds**: Per-theme `package.json` and `vite.config.js` for total asset isolation.
+- 📦 **NPM Workspaces**: Zero-config workspace integration for shared dependencies and optimized storage.
+- ⚡ **Asset Shortcuts**: Launch dev servers or build theme assets directly via `theme:dev` and `theme:build`.
+- 🛠️ **Theme Management**: Create, clone, safe-delete, and activate themes with consistent `--theme` support.
 - 🚀 **Zero-IO Discovery**: High-performance architecture that eliminates filesystem scans in production via deep caching.
+- 🌈 **Rich Metadata**: Support for `screenshots`, `tags`, and management flags (`removable`, `disableable`) in `theme.json`.
 - ⚡ **Livewire 4 Integration**: First-class support for Livewire components and layouts with theme-aware resolution.
 - 🎨 **View Overrides**: Intelligent view resolution cascading from Active Theme -> Parent Theme -> Application.
 - 🚀 **Auto-Blade Discovery**: Automatic registration of theme-specific Blade components and inheritance.
 - 🏷️ **Theme Versioning**: Support for version metadata in `theme.json` for easier dependency mapping.
 - 🚦 **Ephemeral Switching**: Temporarily switch themes for specific tasks using `Themer::forTheme()`.
 - 🛣️ **Route Middleware**: Enforce specific themes for routes or groups via `middleware('theme:name')`.
-- 📦 **Asset Management**: Automatic asset publishing and symlinking mechanism for theme assets.
 - 🧩 **Modular Support**: Native integration with `laravel-modular` including dependency verification in `theme:check`.
-- 🛡️ **Hierarchy Guard**: Built-in validation to detect circular dependencies, missing parents, and required modules.
-- 🔧 **Artisan Commands**: A comprehensive suite of commands (`make`, `list`, `check`, `cache`, `debug`) to manage themes.
-- 🛠 **Refined Vite Support**: Flexible Vite integration that supports theme-specific manifests and custom build directories.坐
+- 🛡️ **Hierarchy Guard**: Built-in validation to detect circular dependencies, missing parents, and asset health.
+- 🔧 **Artisan Commands**: A comprehensive suite of commands (`make`, `npm`, `dev`, `build`, `clone`, `delete`, `list`, `check`, `cache`) to manage themes.
 
 ## 📚 Documentation
+
 
 For full documentation, please visit [**alizharb.github.io/laravel-themer**](https://alizharb.github.io/laravel-themer) or browse the [docs/](docs/) directory.
 
@@ -83,7 +86,7 @@ These packages work seamlessly together to provide a complete modular developmen
 
 ## 📖 Usage
 
-### Creating a Module
+### Creating a Theme
 
 Generate a new theme with a standard directory structure:
 
@@ -91,12 +94,40 @@ Generate a new theme with a standard directory structure:
 php artisan theme:make "Dark Theme"
 ```
 
+### Managing Dependencies
+
+Install packages into a theme workspace directly from the root:
+
+```bash
+php artisan theme:npm --theme=dark-theme install lodash
+```
+
+### Developing Assets
+
+Launch a dedicated Vite dev server for your theme:
+
+```bash
+php artisan theme:dev --theme=dark-theme
+```
+
+### Cloning & Deletion
+
+Safe and fast lifecycle management:
+
+```bash
+# Duplicate an existing theme
+php artisan theme:clone "Summer Edition" --theme=dark-theme
+
+# Safe removal (respects 'removable' flag)
+php artisan theme:delete --theme=summer-edition
+```
+
 ### Activating a Theme
 
 Switch the active theme globally:
 
 ```bash
-php artisan theme:activate "Dark Theme"
+php artisan theme:activate dark-theme
 ```
 
 ### Livewire Integration
@@ -104,10 +135,11 @@ php artisan theme:activate "Dark Theme"
 The package automatically registers Livewire components within your theme.
 
 ```bash
-php artisan make:livewire Header --theme="Dark Theme"
+php artisan make:livewire Header --theme=dark-theme
 ```
 
 ---
+
 
 ## 🧪 Testing
 

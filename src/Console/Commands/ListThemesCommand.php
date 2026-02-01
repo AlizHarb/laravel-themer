@@ -32,6 +32,7 @@ final class ListThemesCommand extends Command
      */
     public function handle(ThemeManager $manager): int
     {
+        /** @var \Illuminate\Support\Collection<string, Theme> $themes */
         $themes = $manager->all();
         $active = $manager->getActiveTheme();
 
@@ -45,11 +46,13 @@ final class ListThemesCommand extends Command
         $rows = $themes->map(fn (Theme $theme): array => [
             $theme->name,
             $active?->name === $theme->name ? '<fg=green>Yes</>' : 'No',
+            $theme->removable ? '<fg=green>Yes</>' : '<fg=red>No</>',
+            $theme->disableable ? '<fg=green>Yes</>' : '<fg=red>No</>',
             $theme->path,
             $theme->parent ?? '<fg=gray>None</>',
         ])->values()->toArray();
 
-        $this->table(['Name', 'Active', 'Path', 'Parent'], $rows);
+        $this->table(['Name', 'Active', 'Removable', 'Disableable', 'Path', 'Parent'], $rows);
 
         return self::SUCCESS;
     }

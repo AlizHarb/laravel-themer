@@ -13,7 +13,5 @@ class ThemeActivated
     use Dispatchable;
     use SerializesModels;
 
-    public function __construct(public Theme $theme)
-    {
-    }
+    public function __construct(public Theme $theme) {}
 }

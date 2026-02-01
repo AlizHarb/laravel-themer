@@ -17,7 +17,7 @@ class ThemeInstallCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'themer:install';
+    protected $name = 'themer:install';
 
     /**
      * The console command description.
@@ -36,16 +36,20 @@ class ThemeInstallCommand extends Command
         $this->publishResources();
         $this->ensureThemesDirectoryExists();
         $this->configureVite();
+        $this->configureNpmWorkspaces();
+        $this->configureNpmScripts();
 
         $this->components->info('Laravel Themer has been successfully installed! 🎨');
 
         if ($this->confirm('Would you like to show some love by starring the repo on GitHub? ⭐', true)) {
             $url = 'https://github.com/alizharb/laravel-themer';
-            if (PHP_OS_FAMILY === 'Darwin') {
+            $os = PHP_OS_FAMILY;
+
+            if ($os === 'Darwin') {
                 exec("open {$url}");
-            } elseif (PHP_OS_FAMILY === 'Windows') {
+            } elseif ($os === 'Windows') {
                 exec("start {$url}");
-            } elseif (PHP_OS_FAMILY === 'Linux') {
+            } elseif ($os === 'Linux') {
                 exec("xdg-open {$url}");
             }
             $this->line("Thanks! You're awesome! 💙");
@@ -72,9 +76,10 @@ class ThemeInstallCommand extends Command
      */
     protected function ensureThemesDirectoryExists(): void
     {
+        /** @var string $path */
         $path = config('themer.themes_path', base_path('themes'));
 
-        if (!File::isDirectory($path)) {
+        if (! File::isDirectory($path)) {
             File::makeDirectory($path, 0755, true);
             $this->components->info("Created themes directory at: {$path}");
         }
@@ -87,7 +92,7 @@ class ThemeInstallCommand extends Command
     {
         $viteConfigPath = base_path('vite.config.js');
 
-        if (!File::exists($viteConfigPath)) {
+        if (! File::exists($viteConfigPath)) {
             return;
         }
 
@@ -95,12 +100,12 @@ class ThemeInstallCommand extends Command
 
         $content = (string) File::get($viteConfigPath);
 
-        if (!str_contains($content, 'vite.themer.js')) {
+        if (! str_contains($content, 'vite.themer.js')) {
             $this->components->warn('Vite needs to be configured to load theme assets.');
 
             if ($this->confirm('Would you like to automatically configure vite.config.js?', true)) {
                 // Add themerLoader import - handle both single-line and multiline imports
-                if (!str_contains($content, 'themerLoader')) {
+                if (! str_contains($content, 'themerLoader')) {
                     // Try to find the vite import (single or multiline)
                     if (preg_match('/import\s+\{[^}]*defineConfig[^}]*\}\s+from\s+[\'"]vite[\'"];?/', $content, $matches)) {
                         $viteImport = $matches[0];
@@ -112,7 +117,7 @@ class ThemeInstallCommand extends Command
                     }
                 }
 
-                $content = preg_replace(
+                $content = (string) preg_replace(
                     "/input:\s*\[([^\]]+)\],/",
                     "input: [\n                $1,\n                ...themerLoader.inputs()\n            ],",
                     $content
@@ -126,7 +131,7 @@ class ThemeInstallCommand extends Command
                         $content
                     );
                 } else {
-                    $content = preg_replace(
+                    $content = (string) preg_replace(
                         "/refresh:\s*true,/",
                         "refresh: [\n                ...themerLoader.refreshPaths(),\n                'resources/views/**',\n                'routes/**',\n            ],",
                         $content
@@ -163,5 +168,89 @@ class ThemeInstallCommand extends Command
             File::put($path, $content);
             $this->components->info('Created vite.themer.js loader.');
         }
+    }
+
+    /**
+     * Configure NPM Workspaces in package.json.
+     */
+    protected function configureNpmWorkspaces(): void
+    {
+        $packageJsonPath = base_path('package.json');
+
+        if (! File::exists($packageJsonPath)) {
+            return;
+        }
+
+        /** @var array<string, mixed> $packageJson */
+        $packageJson = json_decode((string) File::get($packageJsonPath), true);
+
+        /** @var string $themesRawPath */
+        $themesRawPath = config('themer.themes_path', 'themes');
+        $themesPath = str_replace(DIRECTORY_SEPARATOR, '/', $themesRawPath).'/*';
+        /** @var array<int, string> $workspaces */
+        $workspaces = (array) ($packageJson['workspaces'] ?? []);
+
+        if (! in_array($themesPath, $workspaces, true)) {
+            $this->components->warn('NPM Workspaces are recommended for per-theme assets.');
+
+            if ($this->confirm('Would you like to automatically configure NPM Workspaces?', true)) {
+                $workspaces[] = $themesPath;
+                $packageJson['workspaces'] = array_values(array_unique($workspaces));
+
+                File::put($packageJsonPath, (string) json_encode($packageJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                $this->components->info("Configured package.json workspaces to include {$themesPath}");
+                $this->warn('Please run "npm install" to initialize workspaces.');
+            }
+        }
+    }
+
+    /**
+     * Configure NPM Scripts in package.json.
+     */
+    protected function configureNpmScripts(): void
+    {
+        $packageJsonPath = base_path('package.json');
+
+        if (! File::exists($packageJsonPath)) {
+            return;
+        }
+
+        /** @var array<string, mixed> $packageJson */
+        $packageJson = json_decode((string) File::get($packageJsonPath), true);
+
+        /** @var array<string, string> $scripts */
+        $scripts = (array) ($packageJson['scripts'] ?? []);
+        $needsUpdate = false;
+
+        $newScripts = [
+            'themes:dev' => 'npm run dev --workspaces',
+            'themes:build' => 'npm run build --workspaces',
+        ];
+
+        foreach ($newScripts as $key => $command) {
+            if (! isset($scripts[$key])) {
+                $scripts[$key] = $command;
+                $needsUpdate = true;
+            }
+        }
+
+        if ($needsUpdate) {
+            $packageJson['scripts'] = $scripts;
+            File::put($packageJsonPath, (string) json_encode($packageJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->components->info('Added shortcut scripts for themes to package.json');
+        }
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}>
+     */
+    protected function getOptions(): array
+    {
+        /** @var array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}> $options */
+        $options = parent::getOptions();
+
+        return $options;
     }
 }

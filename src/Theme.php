@@ -12,8 +12,8 @@ final readonly class Theme
     /**
      * Create a new Theme instance.
      *
-     * @param  array<string, mixed>  $config
-     * @param  array<int, array{name: string, email?: string, role?: string}>  $authors
+     * @param array<string, mixed> $config
+     * @param array<int, array{name: string, email?: string, role?: string}> $authors
      */
     public function __construct(
         public string $name,
@@ -28,9 +28,12 @@ final readonly class Theme
         public bool $hasViews = false,
         public bool $hasTranslations = false,
         public bool $hasProvider = false,
-        public bool $hasLivewire = false
-    ) {
-    }
+        public bool $hasLivewire = false,
+        public bool $removable = true,
+        public bool $disableable = true,
+        public array $screenshots = [],
+        public array $tags = []
+    ) {}
 
     /**
      * Get the view namespace for the theme.
@@ -61,6 +64,10 @@ final readonly class Theme
             'hasTranslations' => $this->hasTranslations,
             'hasProvider' => $this->hasProvider,
             'hasLivewire' => $this->hasLivewire,
+            'removable' => $this->removable,
+            'disableable' => $this->disableable,
+            'screenshots' => $this->screenshots,
+            'tags' => $this->tags,
         ];
     }
 }

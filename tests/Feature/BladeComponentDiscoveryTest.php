@@ -13,7 +13,7 @@ it('discovers blade components directory', function () {
     $tempDir = __DIR__.'/../temp/blade-test';
     $compDir = $tempDir.'/resources/views/components';
 
-    if (!is_dir($compDir)) {
+    if (! is_dir($compDir)) {
         mkdir($compDir, 0777, true);
     }
 

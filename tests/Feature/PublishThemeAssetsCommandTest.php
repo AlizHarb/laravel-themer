@@ -39,12 +39,12 @@ it('can publish theme assets', function () {
 
     clearstatcache();
     $path = $themePath.'/resources/assets/style.css';
-    if (!file_exists($path)) {
+    if (! file_exists($path)) {
         @mkdir(dirname($path), 0755, true);
         file_put_contents($path, '/* test */');
     }
 
-    if (!File::exists($destination.'/style.css')) {
+    if (! File::exists($destination.'/style.css')) {
         // Fallback check
     }
 

@@ -51,6 +51,24 @@
         "extra": {
             "type": "object",
             "description": "Any additional custom configuration."
+        },
+        "removable": {
+            "type": "boolean",
+            "description": "Whether the theme can be completely deleted from the system."
+        },
+        "disableable": {
+            "type": "boolean",
+            "description": "Whether the theme can be disabled via the manager."
+        },
+        "screenshots": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Paths to screenshots of the theme."
+        },
+        "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Tags for categorizing the theme."
         }
     },
     "required": ["name", "slug", "asset_path"]

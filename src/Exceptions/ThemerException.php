@@ -9,6 +9,4 @@ use Exception;
 /**
  * Base exception for the Laravel Themer package.
  */
-class ThemerException extends Exception
-{
-}
+class ThemerException extends Exception {}

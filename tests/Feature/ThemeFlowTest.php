@@ -22,13 +22,13 @@ it('executes the full theme lifecycle flow', function () {
     expect(File::isDirectory($themePath))->toBeTrue();
 
     // 2. Scan and verify it's registered
-    if (!File::exists(base_path('themes'))) {
+    if (! File::exists(base_path('themes'))) {
         File::makeDirectory(base_path('themes'), 0755, true);
     }
     $manager->scan(base_path('themes'));
 
     // Debug info if fails
-    if (!$manager->all()->has('flow-theme')) {
+    if (! $manager->all()->has('flow-theme')) {
         // dump('Scan failed for flow-theme at '.base_path('themes'));
     }
 
@@ -37,7 +37,7 @@ it('executes the full theme lifecycle flow', function () {
     // 3. Activate the theme
     // Set up temp env
     $tempDir = __DIR__.'/../temp';
-    if (!is_dir($tempDir)) {
+    if (! is_dir($tempDir)) {
         mkdir($tempDir, 0777, true);
     }
 
@@ -69,7 +69,7 @@ it('executes the full theme lifecycle flow', function () {
 
     // 5. Publish assets
     $assetSource = $themePath.'/resources/assets';
-    if (!file_exists($assetSource)) {
+    if (! file_exists($assetSource)) {
         mkdir($assetSource, 0755, true);
     }
     file_put_contents($assetSource.'/flow.js', 'console.log("flow");');
@@ -81,7 +81,7 @@ it('executes the full theme lifecycle flow', function () {
 
     // Publisher uses theme name, not slug
     $publishedPath = public_path('themes/Flow Theme/flow.js');
-    if (!File::exists($publishedPath) && File::exists(public_path('themes/flow-theme/flow.js'))) {
+    if (! File::exists($publishedPath) && File::exists(public_path('themes/flow-theme/flow.js'))) {
         $publishedPath = public_path('themes/flow-theme/flow.js');
     }
 

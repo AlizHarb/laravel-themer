@@ -17,7 +17,7 @@ it('resolves theme view if exists', function () {
     /** @var ThemeManager $manager */
     $manager = app(ThemeManager::class);
 
-    if (!File::exists(__DIR__.'/../fixtures/theme/resources/views')) {
+    if (! File::exists(__DIR__.'/../fixtures/theme/resources/views')) {
         File::makeDirectory(__DIR__.'/../fixtures/theme/resources/views', 0755, true);
         File::put(__DIR__.'/../fixtures/theme/resources/views/test.blade.php', 'Theme view content');
     }
@@ -29,7 +29,7 @@ it('resolves theme view if exists', function () {
 
     // Verify file exists
     $viewFile = $themePath.'/resources/views/test.blade.php';
-    if (!file_exists($viewFile)) {
+    if (! file_exists($viewFile)) {
         @mkdir(dirname($viewFile), 0755, true);
         file_put_contents($viewFile, 'Theme view content');
     }

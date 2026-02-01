@@ -20,7 +20,7 @@ final class ThemeAsset
         $manager = app('themer');
         $theme = $manager->getActiveTheme();
 
-        if (!$theme) {
+        if (! $theme) {
             return asset($path);
         }
 
@@ -32,7 +32,7 @@ final class ThemeAsset
     /**
      * Get the Vite tag for theme-specific entrypoints.
      *
-     * @param  string|string[]  $entrypoints
+     * @param string|string[] $entrypoints
      */
     public static function vite(string|array $entrypoints, ?string $buildDirectory = null): string
     {
@@ -40,7 +40,7 @@ final class ThemeAsset
         $manager = app('themer');
         $theme = $manager->getActiveTheme();
 
-        if (!$theme) {
+        if (! $theme) {
             return (string) app(Vite::class)($entrypoints, $buildDirectory);
         }
 
@@ -65,6 +65,9 @@ final class ThemeAsset
                 : sprintf('themes/%s/build', $theme->name);
         }
 
-        return (string) app(Vite::class)($transformed, $buildDirectory);
+        /** @var \Illuminate\Foundation\Vite $vite */
+        $vite = app(Vite::class);
+
+        return (string) $vite($transformed, $buildDirectory);
     }
 }

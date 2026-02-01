@@ -22,9 +22,14 @@ it('can generate a new theme structure', function () {
 
     expect(File::isDirectory($fullPath))->toBeTrue()
         ->and(File::exists($fullPath.'/theme.json'))->toBeTrue()
+        ->and(File::exists($fullPath.'/package.json'))->toBeTrue()
+        ->and(File::exists($fullPath.'/vite.config.js'))->toBeTrue()
         ->and(File::isDirectory($fullPath.'/app/Livewire'))->toBeTrue()
         ->and(File::isDirectory($fullPath.'/resources/views/livewire'))->toBeTrue()
         ->and(File::exists($fullPath.'/resources/assets/css/app.css'))->toBeTrue();
+
+    $packageJson = json_decode(File::get($fullPath.'/package.json'), true);
+    expect($packageJson['name'])->toBe('@themes/'.$slug);
 
     $config = json_decode(File::get($fullPath.'/theme.json'), true);
     expect($config['name'])->toBe($themeName)

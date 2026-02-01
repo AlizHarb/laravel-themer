@@ -31,7 +31,7 @@ class TestCase extends Orchestra
     protected function getEnvironmentSetUp($app): void
     {
         // Bind themer in case the provider hasn't booted yet in some test contexts
-        if (!$app->bound('themer')) {
+        if (! $app->bound('themer')) {
             $app->singleton(ThemeManager::class, function ($app) {
                 return new ThemeManager();
             });

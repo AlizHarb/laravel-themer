@@ -37,15 +37,18 @@ trait HasThemeOption
     {
         $themeName = $this->getTheme();
 
-        if (!$themeName) {
-            return $next();
+        if (! $themeName) {
+            /** @var int $result */
+            $result = $next();
+
+            return $result;
         }
 
         /** @var \AlizHarb\Themer\ThemeManager $manager */
         $manager = app(\AlizHarb\Themer\ThemeManager::class);
         $theme = $manager->all()->get($themeName);
 
-        if (!$theme) {
+        if (! $theme) {
             $this->components->error(sprintf('Theme [%s] not found.', $themeName));
 
             return 1;
@@ -55,17 +58,23 @@ trait HasThemeOption
         $classPath = $theme->path.'/app/Livewire';
         $viewPath = $theme->path.'/resources/views/livewire';
 
-        if (!is_dir($classPath)) {
+        if (! is_dir($classPath)) {
             mkdir($classPath, 0755, true);
         }
 
-        if (!is_dir($viewPath)) {
+        if (! is_dir($viewPath)) {
             mkdir($viewPath, 0755, true);
         }
 
         // Temporarily override Livewire configuration to redirect the generator
-        $originalNamespace = (string) config('livewire.class_namespace');
-        $originalViewPath = (string) config('livewire.view_path');
+        /** @var string $originalNamespace */
+        $originalNamespace = config('livewire.class_namespace', '');
+        /** @var string $originalViewPath */
+        $originalViewPath = config('livewire.view_path', '');
+        /** @var string $originalNamespace */
+        $originalNamespace = config('livewire.class_namespace', '');
+        /** @var string $originalViewPath */
+        $originalViewPath = config('livewire.view_path', '');
 
         // Register theme namespace for Livewire
         \Livewire\Livewire::addNamespace(
@@ -93,7 +102,10 @@ trait HasThemeOption
         }
 
         try {
-            return $next();
+            /** @var int $result */
+            $result = $next();
+
+            return $result;
         } finally {
             \Illuminate\Support\Facades\Config::set('livewire.class_namespace', $originalNamespace);
             \Illuminate\Support\Facades\Config::set('livewire.view_path', $originalViewPath);
@@ -103,22 +115,25 @@ trait HasThemeOption
     /**
      * Get the theme console command options.
      *
-     * @return array<int, array>
+     * @return array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}>
      */
     protected function getThemeOptions(): array
     {
         return [
-            ['theme', null, InputOption::VALUE_OPTIONAL, 'The name of the theme.'],
+            ['theme', null, InputOption::VALUE_OPTIONAL, 'The name of the theme.', null],
         ];
     }
 
     /**
      * Get the console command options.
      *
-     * @return array<int, array>
+     * @return array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}>
      */
     protected function getOptions(): array
     {
-        return array_merge(parent::getOptions(), $this->getThemeOptions());
+        /** @var array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}> $options */
+        $options = array_merge(parent::getOptions(), $this->getThemeOptions());
+
+        return $options;
     }
 }

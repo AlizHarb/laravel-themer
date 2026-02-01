@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 
 it('scans modules for themes', function () {
-    if (!class_exists('AlizHarb\Modular\ModuleRegistry')) {
+    if (! class_exists('AlizHarb\Modular\ModuleRegistry')) {
         $this->markTestSkipped('ModuleRegistry class not found.');
     }
 
@@ -21,7 +21,7 @@ it('scans modules for themes', function () {
     $modulePath = $fixturePath.'/TestModule';
     $themePath = $modulePath.'/resources/theme';
 
-    if (!File::exists($themePath)) {
+    if (! File::exists($themePath)) {
         File::makeDirectory($themePath, 0755, true);
     }
 
@@ -33,40 +33,29 @@ it('scans modules for themes', function () {
     Config::set('modular.paths.modules', $fixturePath);
 
     // Setup simple activator stub
-    $activator = new class () implements \AlizHarb\Modular\Contracts\Activator {
-        public function enable(string $module): void
-        {
-        }
+    $activator = new class() implements \AlizHarb\Modular\Contracts\Activator
+    {
+        public function enable(string $module): void {}
 
-        public function disable(string $module): void
-        {
-        }
+        public function disable(string $module): void {}
 
         public function hasStatus(string $module, bool $status): bool
         {
             return true;
         }
 
-        public function setActive(string $module, bool $active): void
-        {
-        }
+        public function setActive(string $module, bool $active): void {}
 
-        public function setStatus(string $module, bool $status): void
-        {
-        }
+        public function setStatus(string $module, bool $status): void {}
 
         public function isEnabled(string $module): bool
         {
             return true;
         }
 
-        public function delete(string $module): void
-        {
-        }
+        public function delete(string $module): void {}
 
-        public function reset(): void
-        {
-        }
+        public function reset(): void {}
     };
 
     app()->instance('TestActivator', $activator);
