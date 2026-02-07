@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Console\Commands;
 
+use AlizHarb\Themer\ThemeServiceProvider;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
@@ -66,7 +67,7 @@ class ThemeInstallCommand extends Command
         $this->info('Publishing resources...');
 
         $this->call('vendor:publish', [
-            '--provider' => "AlizHarb\Themer\ThemeServiceProvider",
+            '--provider' => ThemeServiceProvider::class,
             '--tag' => 'themer-config',
         ]);
     }

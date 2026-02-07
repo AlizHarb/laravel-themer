@@ -7,6 +7,7 @@ namespace AlizHarb\Themer\Console\Commands;
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
 /**
  * Artisan command to list all discovered themes.
@@ -32,7 +33,7 @@ final class ListThemesCommand extends Command
      */
     public function handle(ThemeManager $manager): int
     {
-        /** @var \Illuminate\Support\Collection<string, Theme> $themes */
+        /** @var Collection<string, Theme> $themes */
         $themes = $manager->all();
         $active = $manager->getActiveTheme();
 
@@ -43,16 +44,17 @@ final class ListThemesCommand extends Command
         }
 
         /** @var array<int, array<int, string>> $rows */
-        $rows = $themes->map(fn (Theme $theme): array => [
+        $rows = $themes->sortBy('name')->map(fn (Theme $theme): array => [
             $theme->name,
-            $active?->name === $theme->name ? '<fg=green>Yes</>' : 'No',
+            $theme->version,
+            $theme->author ?: '<fg=gray>Unknown</>',
+            $active?->slug === $theme->slug ? '<fg=green>Yes</>' : 'No',
             $theme->removable ? '<fg=green>Yes</>' : '<fg=red>No</>',
             $theme->disableable ? '<fg=green>Yes</>' : '<fg=red>No</>',
-            $theme->path,
             $theme->parent ?? '<fg=gray>None</>',
         ])->values()->toArray();
 
-        $this->table(['Name', 'Active', 'Removable', 'Disableable', 'Path', 'Parent'], $rows);
+        $this->table(['Name', 'Version', 'Author', 'Active', 'Removable', 'Disableable', 'Parent'], $rows);
 
         return self::SUCCESS;
     }

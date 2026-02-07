@@ -2,7 +2,12 @@
     "name": "alizharb/laravel-themer",
     "version": "1.2.0",
     "description": "A professional theme management system for Laravel 11/12 with first-class Livewire 4 support, strict typing, and zero-config modular integration.",
-    "keywords": ["laravel", "theme", "themer", "package"],
+    "keywords": [
+        "laravel",
+        "theme",
+        "themer",
+        "package"
+    ],
     "license": "MIT",
     "authors": [
         {
@@ -21,7 +26,7 @@
         "livewire/livewire": "^4.0",
         "pestphp/pest": "^3.0",
         "pestphp/pest-plugin-laravel": "^3.0",
-        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan": "^2.1.33",
         "rector/rector": "^2.3",
         "driftingly/rector-laravel": "^2.1",
         "larastan/larastan": "^3.9.1",

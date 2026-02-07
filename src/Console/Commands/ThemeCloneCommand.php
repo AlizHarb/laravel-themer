@@ -9,6 +9,8 @@ use AlizHarb\Themer\Traits\HasThemeOption;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 
 /**
  * Console command to clone an existing theme.
@@ -104,7 +106,7 @@ final class ThemeCloneCommand extends Command
     {
         /** @var array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}> $options */
         $options = array_merge([
-            ['theme', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED, 'The name or slug of the theme to clone', null],
+            ['theme', null, InputOption::VALUE_REQUIRED, 'The name or slug of the theme to clone', null],
         ], parent::getOptions());
 
         return $options;
@@ -118,7 +120,7 @@ final class ThemeCloneCommand extends Command
     protected function getArguments(): array
     {
         return [
-            ['name', \Symfony\Component\Console\Input\InputArgument::REQUIRED, 'The name of the new theme', null],
+            ['name', InputArgument::REQUIRED, 'The name of the new theme', null],
         ];
     }
 }

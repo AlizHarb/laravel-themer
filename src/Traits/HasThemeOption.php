@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Traits;
 
+use AlizHarb\Themer\ThemeManager;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Symfony\Component\Console\Input\InputOption;
 
 /**
@@ -44,8 +48,8 @@ trait HasThemeOption
             return $result;
         }
 
-        /** @var \AlizHarb\Themer\ThemeManager $manager */
-        $manager = app(\AlizHarb\Themer\ThemeManager::class);
+        /** @var ThemeManager $manager */
+        $manager = app(ThemeManager::class);
         $theme = $manager->all()->get($themeName);
 
         if (! $theme) {
@@ -77,17 +81,17 @@ trait HasThemeOption
         $originalViewPath = config('livewire.view_path', '');
 
         // Register theme namespace for Livewire
-        \Livewire\Livewire::addNamespace(
+        Livewire::addNamespace(
             $themeLower,
             $viewPath,
-            'Theme\\'.\Illuminate\Support\Str::studly($theme->name).'\\Livewire',
+            'Theme\\'.Str::studly($theme->name).'\\Livewire',
             $classPath,
             $viewPath
         );
 
         // Use Config::set to make sure internal tools picking up config see the theme paths
-        \Illuminate\Support\Facades\Config::set('livewire.class_namespace', 'Theme\\'.\Illuminate\Support\Str::studly($theme->name).'\\Livewire');
-        \Illuminate\Support\Facades\Config::set('livewire.view_path', $viewPath);
+        Config::set('livewire.class_namespace', 'Theme\\'.Str::studly($theme->name).'\\Livewire');
+        Config::set('livewire.view_path', $viewPath);
 
         // Prefix name with theme namespace
         // @phpstan-ignore-next-line
@@ -107,8 +111,8 @@ trait HasThemeOption
 
             return $result;
         } finally {
-            \Illuminate\Support\Facades\Config::set('livewire.class_namespace', $originalNamespace);
-            \Illuminate\Support\Facades\Config::set('livewire.view_path', $originalViewPath);
+            Config::set('livewire.class_namespace', $originalNamespace);
+            Config::set('livewire.view_path', $originalViewPath);
         }
     }
 

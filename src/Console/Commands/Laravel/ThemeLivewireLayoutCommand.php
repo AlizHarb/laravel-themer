@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Console\Commands\Laravel;
 
+use AlizHarb\Themer\ThemeManager;
 use AlizHarb\Themer\Traits\HasThemeOption;
 use Illuminate\Support\Facades\Config;
 use Livewire\Features\SupportConsoleCommands\Commands\LayoutCommand;
@@ -30,8 +31,8 @@ final class ThemeLivewireLayoutCommand extends LayoutCommand
         $themeName = $this->getTheme();
 
         if ($themeName) {
-            /** @var \AlizHarb\Themer\ThemeManager $manager */
-            $manager = app(\AlizHarb\Themer\ThemeManager::class);
+            /** @var ThemeManager $manager */
+            $manager = app(ThemeManager::class);
             $theme = $manager->all()->get($themeName);
 
             if (! $theme) {

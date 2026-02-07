@@ -8,6 +8,7 @@ use AlizHarb\Themer\ThemeManager;
 use AlizHarb\Themer\Traits\HasThemeOption;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\Console\Input\InputOption;
 
 /**
  * Console command to delete a theme.
@@ -98,8 +99,8 @@ final class ThemeDeleteCommand extends Command
     {
         /** @var array<int, array{0: string, 1: string|null, 2: int, 3: string, 4: mixed|null}> $options */
         $options = array_merge([
-            ['theme', null, \Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED, 'The name or slug of the theme to delete', null],
-            ['force', null, \Symfony\Component\Console\Input\InputOption::VALUE_NONE, 'Delete even if removable is false', null],
+            ['theme', null, InputOption::VALUE_REQUIRED, 'The name or slug of the theme to delete', null],
+            ['force', null, InputOption::VALUE_NONE, 'Delete even if removable is false', null],
         ], parent::getOptions());
 
         return $options;

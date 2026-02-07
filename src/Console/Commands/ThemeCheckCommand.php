@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Console\Commands;
 
+use AlizHarb\Modular\ModuleRegistry;
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 
 class ThemeCheckCommand extends Command
@@ -30,6 +32,7 @@ class ThemeCheckCommand extends Command
      */
     public function handle(ThemeManager $manager): int
     {
+        /** @var Collection<string, Theme> $themes */
         $themes = $manager->all();
         $status = self::SUCCESS;
 
@@ -59,7 +62,7 @@ class ThemeCheckCommand extends Command
                         continue;
                     }
 
-                    /** @var \AlizHarb\Modular\ModuleRegistry $registry */
+                    /** @var ModuleRegistry $registry */
                     $registry = app('modular');
                     /** @var array<int, array{name: string, path: string, namespace: string, enabled?: bool}> $modules */
                     $modules = $registry->getModules();
@@ -95,7 +98,12 @@ class ThemeCheckCommand extends Command
                 }
             }
 
-            // 6. Optimization Tips (NPM Workspaces)
+            // 6. Config Validation
+            if (empty($theme->author)) {
+                $this->components->warn("Theme [{$theme->name}] has no author defined in [theme.json].");
+            }
+
+            // 7. Optimization Tips (NPM Workspaces)
             if (File::isDirectory($theme->path.'/node_modules')) {
                 $this->components->warn("Theme [{$theme->name}] contains its own [node_modules]. Recommendation: Remove it and use NPM Workspaces for faster builds and zero storage overhead.");
             }
@@ -111,10 +119,10 @@ class ThemeCheckCommand extends Command
     /**
      * Recursively check for circular dependencies.
      *
-     * @param \Illuminate\Support\Collection<string, Theme> $themes
+     * @param Collection<string, Theme> $themes
      * @param array<int, string> &$path
      */
-    protected function hasCircularDependency(Theme $theme, \Illuminate\Support\Collection $themes, array &$path): bool
+    protected function hasCircularDependency(Theme $theme, Collection $themes, array &$path): bool
     {
         if (! $theme->parent) {
             return false;

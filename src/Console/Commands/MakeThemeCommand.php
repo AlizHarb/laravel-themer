@@ -92,6 +92,8 @@ final class MakeThemeCommand extends Command
             (string) json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         );
 
+        File::put($path.'/.gitignore', $this->getStubContents('gitignore.stub'));
+
         $this->createPlaceholderAssets($path);
         $this->createAssets($path, $name, $slug);
     }

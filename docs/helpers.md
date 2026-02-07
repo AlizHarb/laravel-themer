@@ -119,6 +119,24 @@ Include a view from the active theme.
 
 ---
 
+### `@theme_asset`
+
+Generate a public URL for a theme asset.
+
+```blade
+<link rel="stylesheet" href="@theme_asset('css/app.css')">
+```
+
+### `@theme_vite`
+
+Load theme-specific assets using Vite with proper hot-reload support.
+
+```blade
+@theme_vite('resources/assets/js/app.js')
+```
+
+---
+
 ## ThemeManager Methods
 
 Access the ThemeManager via the service container:
@@ -206,13 +224,13 @@ $isActive = app('themer')->isActive('mytheme');
 
 ---
 
-### `getThemeParents()`
+### `getInheritanceChain()`
 
 Get the parent chain of a theme.
 
 ```php
 $theme = app('themer')->find('mytheme');
-$parents = app('themer')->getThemeParents($theme);
+$parents = app('themer')->getInheritanceChain($theme);
 
 foreach ($parents as $parent) {
     echo $parent->name;
@@ -220,9 +238,9 @@ foreach ($parents as $parent) {
 ```
 
 **Parameters:**
-- `Theme $theme` - Theme instance
+- `Theme|string $theme` - Theme instance or slug
 
-**Returns:** `array<int, Theme>`
+**Returns:** `Collection<int, Theme>`
 
 ---
 

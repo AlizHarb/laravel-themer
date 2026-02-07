@@ -43,7 +43,7 @@ it('supports multi-level inheritance for livewire', function () {
 
     // Using reflection to check if parents are correctly identified
     $ref = new \ReflectionClass($manager);
-    $method = $ref->getMethod('getThemeParents');
+    $method = $ref->getMethod('getInheritanceChain');
     $method->setAccessible(true);
 
     $parents = $method->invoke($manager, $c);

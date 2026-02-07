@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Facades;
 
+use AlizHarb\Themer\Theme as ThemeInstance;
 use AlizHarb\Themer\ThemeManager;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static void register(\AlizHarb\Themer\Theme $theme)
+ * @method static void register(ThemeInstance $theme)
  * @method static void scan(string $path)
  * @method static void set(string $themeName)
- * @method static \AlizHarb\Themer\Theme|null getActiveTheme()
- * @method static \Illuminate\Support\Collection<string, \AlizHarb\Themer\Theme> all()
+ * @method static ThemeInstance|null getActiveTheme()
+ * @method static Collection<string, ThemeInstance> all()
  *
  * @see ThemeManager
  */

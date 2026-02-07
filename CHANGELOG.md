@@ -2,6 +2,19 @@
 
 All notable changes to `laravel-themer` will be documented in this file.
 
+## v1.2.1 - 2026-02-06
+
+### DX & Diagnostics
+- **theme:info Command**: New diagnostic command to display exhaustive theme metadata, resource detection, and inheritance chains.
+- **Enhanced theme:list**: Added Version and Author columns with sorted and colorized output.
+- **Improved theme:check**: Added author validation and optimization suggestions.
+- **Unified Inheritance**: Extracted `getInheritanceChain()` into `ThemeManager` for robust, reusable traversal.
+- **Blade Directives**: Added `@theme_asset` and `@theme_vite` for cleaner template-level asset resolution.
+
+### Fixed Issues
+
+- **Livewire Component Resolution**: Fixed a critical bug where a static resolver flag prevented Livewire missing component resolution from being re-registered during sequential test execution or application refreshes.
+
 ## v1.2.0 - 2026-02-01
 
 ### Power User Features & DX

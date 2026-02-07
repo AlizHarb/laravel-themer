@@ -7,6 +7,7 @@ namespace AlizHarb\Themer\Console\Commands;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class ThemeCacheCommand extends Command
 {
@@ -51,7 +52,7 @@ class ThemeCacheCommand extends Command
 
                 return [
                     'name' => (string) ($config['name'] ?? basename($dir)),
-                    'slug' => (string) ($config['slug'] ?? \Illuminate\Support\Str::slug((string) ($config['name'] ?? basename($dir)))),
+                    'slug' => (string) ($config['slug'] ?? Str::slug((string) ($config['name'] ?? basename($dir)))),
                     'path' => $dir,
                     'assetPath' => (string) ($config['asset_path'] ?? ''),
                     'parent' => $config['parent'] ?? null,

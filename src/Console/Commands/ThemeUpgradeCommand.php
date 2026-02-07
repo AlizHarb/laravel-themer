@@ -80,6 +80,7 @@ final class ThemeUpgradeCommand extends Command
         $this->components->task("Upgrading theme: {$theme->name}", function () use ($theme, $files) {
             $this->ensureThemePaths($theme, $files);
             $this->syncThemeJson($theme, $files);
+            $this->syncThemeGitignore($theme, $files);
             $this->syncThemeAssets($theme, $files);
 
             if ($this->option('assets')) {
@@ -132,6 +133,11 @@ final class ThemeUpgradeCommand extends Command
             /** @var array<string, mixed> $config */
             $config = json_decode($content, true) ?: [];
 
+            // Standardize $schema
+            if (! isset($config['$schema'])) {
+                $config['$schema'] = 'https://raw.githubusercontent.com/alizharb/laravel-themer/main/resources/schemas/theme.schema.json';
+            }
+
             // Standardize slug if missing
             if (! isset($config['slug'])) {
                 $config['slug'] = $theme->slug;
@@ -139,7 +145,7 @@ final class ThemeUpgradeCommand extends Command
 
             // Standardize version
             if (! isset($config['version'])) {
-                $config['version'] = '1.0.0';
+                $config['version'] = $theme->version ?: '1.0.0';
             }
         }
 
@@ -147,6 +153,22 @@ final class ThemeUpgradeCommand extends Command
             $path,
             (string) json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         );
+    }
+
+    /**
+     * Synchronize .gitignore file.
+     */
+    protected function syncThemeGitignore(Theme $theme, Filesystem $files): void
+    {
+        $path = $theme->path.'/.gitignore';
+
+        if (! $files->exists($path)) {
+            $stubPath = __DIR__.'/../../../resources/stubs/gitignore.stub';
+
+            if ($files->exists($stubPath)) {
+                $files->copy($stubPath, $path);
+            }
+        }
     }
 
     /**

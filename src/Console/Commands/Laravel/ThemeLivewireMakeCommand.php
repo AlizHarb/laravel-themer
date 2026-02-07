@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Console\Commands\Laravel;
 
+use AlizHarb\Themer\ThemeManager;
 use AlizHarb\Themer\Traits\HasThemeOption;
 use Livewire\Features\SupportConsoleCommands\Commands\MakeCommand;
 
@@ -23,8 +24,8 @@ final class ThemeLivewireMakeCommand extends MakeCommand
         $themeName = $this->getTheme();
 
         if ($themeName) {
-            /** @var \AlizHarb\Themer\ThemeManager $manager */
-            $manager = app(\AlizHarb\Themer\ThemeManager::class);
+            /** @var ThemeManager $manager */
+            $manager = app(ThemeManager::class);
 
             /** @var ?string $nameArg */
             $nameArg = $this->argument('name');
@@ -53,8 +54,8 @@ final class ThemeLivewireMakeCommand extends MakeCommand
      */
     protected function relocateGeneratedFiles(string $themeName, string $componentName): void
     {
-        /** @var \AlizHarb\Themer\ThemeManager $manager */
-        $manager = app(\AlizHarb\Themer\ThemeManager::class);
+        /** @var ThemeManager $manager */
+        $manager = app(ThemeManager::class);
         $theme = $manager->all()->get($themeName);
 
         if (! $theme) {

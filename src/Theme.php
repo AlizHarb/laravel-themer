@@ -44,6 +44,22 @@ final readonly class Theme
     }
 
     /**
+     * Check if the theme has a parent.
+     */
+    public function isChild(): bool
+    {
+        return ! empty($this->parent);
+    }
+
+    /**
+     * Check if the theme is a base theme (no parent).
+     */
+    public function isParent(): bool
+    {
+        return empty($this->parent);
+    }
+
+    /**
      * Convert the theme to an array for caching.
      *
      * @return array<string, mixed>

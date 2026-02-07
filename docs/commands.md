@@ -86,6 +86,43 @@ php artisan theme:list
 
 ---
 
+### `theme:info`
+
+Display detailed diagnostic information about a specific theme.
+
+```bash
+php artisan theme:info {theme?}
+```
+
+**Arguments:**
+- `theme` - Theme name or slug (optional, uses active theme if not provided)
+
+**Displays:**
+- **Basic Info**: Name, Slug, Version, Author, and Path.
+- **Resource Detection**: Presence of Views, Translations, Service Provider, and Livewire components.
+- **Inheritance**: Full parent chain and immediate parent.
+- **Assets**: Vite configuration status and custom asset paths.
+
+---
+
+### `@theme_asset`
+
+Generate a public URL for a theme asset.
+
+```blade
+<link rel="stylesheet" href="@theme_asset('css/app.css')">
+```
+
+### `@theme_vite`
+
+Load theme-specific assets using Vite with proper hot-reload support.
+
+```blade
+@theme_vite('resources/assets/js/app.js')
+```
+
+---
+
 ### `theme:delete`
 
 Delete a theme from the filesystem.

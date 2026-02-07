@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Plugins;
 
+use AlizHarb\Modular\ModuleRegistry;
 use AlizHarb\Themer\Contracts\ThemerPlugin;
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
@@ -38,12 +39,12 @@ final class ModulesPlugin implements ThemerPlugin
      */
     public function boot(Application $app, ThemeManager $manager, Collection $themes): void
     {
-        if (! class_exists('AlizHarb\Modular\ModuleRegistry')) {
+        if (! class_exists(ModuleRegistry::class)) {
             return;
         }
 
         /** @var mixed $registry */
-        $registry = $app->make('AlizHarb\Modular\ModuleRegistry');
+        $registry = $app->make(ModuleRegistry::class);
 
         /** @var array<int, array{name: string, path: string, namespace: string}> $modules */
         $modules = $registry->getModules();

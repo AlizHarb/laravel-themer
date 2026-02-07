@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer;
 
+use AlizHarb\Themer\Events\ThemeActivated;
+use AlizHarb\Themer\Events\ThemeActivating;
 use AlizHarb\Themer\Exceptions\ThemeNotFoundException;
+use Closure;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
+use RuntimeException;
 
 /**
  * The core Theme Manager class responsible for discovering,
@@ -136,7 +142,7 @@ class ThemeManager
 
                 // Check for slug uniqueness
                 if ($this->themes->has($slug)) {
-                    throw new \RuntimeException("Theme slug '{$slug}' is already in use by theme '{$this->themes->get($slug)->name}'. Each theme must have a unique slug.");
+                    throw new RuntimeException("Theme slug '{$slug}' is already in use by theme '{$this->themes->get($slug)->name}'. Each theme must have a unique slug.");
                 }
 
                 $theme = new Theme(
@@ -172,7 +178,7 @@ class ThemeManager
     /**
      * Temporarily switch to a specific theme for the duration of a callback.
      */
-    public function forTheme(string $themeName, \Closure $callback): mixed
+    public function forTheme(string $themeName, Closure $callback): mixed
     {
         $originalTheme = $this->activeTheme;
 
@@ -216,7 +222,7 @@ class ThemeManager
         $originalNamespace = (string) config('livewire.class_namespace');
         $originalViewPath = (string) config('livewire.view_path');
 
-        \Livewire\Livewire::addNamespace(
+        Livewire::addNamespace(
             $themeLower,
             $viewPath,
             'Theme\\'.Str::studly($theme->name).'\\Livewire',
@@ -224,20 +230,20 @@ class ThemeManager
             $viewPath
         );
 
-        \Illuminate\Support\Facades\Config::set('livewire.class_namespace', 'Theme\\'.Str::studly($theme->name).'\\Livewire');
-        \Illuminate\Support\Facades\Config::set('livewire.view_path', $viewPath);
+        Config::set('livewire.class_namespace', 'Theme\\'.Str::studly($theme->name).'\\Livewire');
+        Config::set('livewire.view_path', $viewPath);
 
         // Livewire 4 redirection
-        \Illuminate\Support\Facades\Config::set('livewire.component_locations', [$viewPath]);
-        \Illuminate\Support\Facades\Config::set('livewire.component_namespaces', [
+        Config::set('livewire.component_locations', [$viewPath]);
+        Config::set('livewire.component_namespaces', [
             'theme' => $viewPath,
         ]);
 
         try {
             return $callback($theme);
         } finally {
-            \Illuminate\Support\Facades\Config::set('livewire.class_namespace', $originalNamespace);
-            \Illuminate\Support\Facades\Config::set('livewire.view_path', $originalViewPath);
+            Config::set('livewire.class_namespace', $originalNamespace);
+            Config::set('livewire.view_path', $originalViewPath);
         }
     }
 
@@ -255,13 +261,13 @@ class ThemeManager
             throw ThemeNotFoundException::make($themeName);
         }
 
-        \AlizHarb\Themer\Events\ThemeActivating::dispatch($themeName);
+        ThemeActivating::dispatch($themeName);
 
         $this->activeTheme = $theme;
 
         $this->registerResources($theme);
 
-        \AlizHarb\Themer\Events\ThemeActivated::dispatch($theme);
+        ThemeActivated::dispatch($theme);
     }
 
     /**
@@ -281,7 +287,7 @@ class ThemeManager
         $this->registerThemeLanguages($theme);
         $this->registerThemeServiceProvider($theme);
 
-        foreach ($this->getThemeParents($theme) as $parent) {
+        foreach ($this->getInheritanceChain($theme) as $parent) {
             $this->registerThemeLivewire($parent);
         }
 
@@ -303,7 +309,7 @@ class ThemeManager
 
         require_once $providerPath;
 
-        $studlyName = \Illuminate\Support\Str::studly($theme->name);
+        $studlyName = Str::studly($theme->name);
         $namespacedClass = "Theme\\{$studlyName}\\ThemeServiceProvider";
 
         if (class_exists($namespacedClass)) {
@@ -324,7 +330,7 @@ class ThemeManager
             $paths[] = $theme->path.'/resources/views';
         }
 
-        foreach ($this->getThemeParents($theme) as $parent) {
+        foreach ($this->getInheritanceChain($theme) as $parent) {
             if ($parent->hasViews) {
                 $paths[] = $parent->path.'/resources/views';
             }
@@ -350,7 +356,7 @@ class ThemeManager
                 app('view')->addNamespace($namespace, $nsPaths);
 
                 foreach ($nsPaths as $path) {
-                    \Illuminate\Support\Facades\Blade::anonymousComponentPath($path, $namespace);
+                    Blade::anonymousComponentPath($path, $namespace);
                 }
             }
         }
@@ -394,7 +400,7 @@ class ThemeManager
 
         $translator->addJsonPath($langPath);
 
-        foreach ($this->getThemeParents($theme) as $parent) {
+        foreach ($this->getInheritanceChain($theme) as $parent) {
             $this->registerThemeLanguages($parent);
         }
     }
@@ -412,13 +418,19 @@ class ThemeManager
     }
 
     /**
-     * Get the parents of a theme.
+     * Get the inheritance chain (parents) of a theme.
      *
-     * @return array<int, Theme>
+     * @return Collection<int, Theme>
      */
-    protected function getThemeParents(Theme $theme): array
+    public function getInheritanceChain(Theme|string $theme): Collection
     {
-        $parents = [];
+        $theme = $theme instanceof Theme ? $theme : $this->themes->get($theme);
+
+        if (! $theme instanceof Theme) {
+            return new Collection();
+        }
+
+        $parents = new Collection();
         $current = $theme;
         $seen = [$theme->slug => true];
 
@@ -435,7 +447,7 @@ class ThemeManager
             }
 
             $seen[$parent->slug] = true;
-            $parents[] = $parent;
+            $parents->push($parent);
             $current = $parent;
         }
 
@@ -502,13 +514,13 @@ class ThemeManager
      */
     public function getThemeViewPaths(): array
     {
-        if (! $this->activeTheme instanceof \AlizHarb\Themer\Theme) {
+        if (! $this->activeTheme instanceof Theme) {
             return [];
         }
 
         $paths = [$this->activeTheme->path.'/resources/views'];
 
-        foreach ($this->getThemeParents($this->activeTheme) as $parent) {
+        foreach ($this->getInheritanceChain($this->activeTheme) as $parent) {
             if ($parent->hasViews) {
                 $paths[] = $parent->path.'/resources/views';
             }
@@ -570,20 +582,13 @@ class ThemeManager
         }
 
         // 3. Register Global Alias Resolver
-        static $resolverRegistered = false;
-        if (! $resolverRegistered) {
-            $this->registerThemeLivewireResolver();
-            $resolverRegistered = true;
-        }
+        $this->registerThemeLivewireResolver();
     }
 
-    /**
-     * Register a dynamic Livewire component resolver for theme inheritance.
-     */
     protected function registerThemeLivewireResolver(): void
     {
         Livewire::resolveMissingComponent(function (string $name) {
-            if (! $this->activeTheme instanceof \AlizHarb\Themer\Theme) {
+            if (! $this->activeTheme instanceof Theme) {
                 return null;
             }
 
@@ -621,7 +626,8 @@ class ThemeManager
                     return null;
                 }
 
-                $themes = array_merge([$this->activeTheme], $this->getThemeParents($this->activeTheme));
+                $parents = $this->getInheritanceChain($this->activeTheme);
+                $themes = collect([$this->activeTheme])->merge($parents);
 
                 /** @var \Livewire\Factory\Factory $livewireFactory */
                 $livewireFactory = app('livewire.factory');
@@ -639,7 +645,7 @@ class ThemeManager
 
                                 return $class;
                             }
-                        } catch (\Exception) {
+                        } catch (Exception) {
                         }
                     }
                 }
@@ -679,7 +685,7 @@ class ThemeManager
 
                                 return $class;
                             }
-                        } catch (\Exception) {
+                        } catch (Exception) {
                         }
                     }
                 }

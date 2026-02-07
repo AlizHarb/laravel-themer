@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Console\Commands\Laravel;
 
+use AlizHarb\Themer\ThemeManager;
 use AlizHarb\Themer\Traits\HasThemeOption;
 use Illuminate\Foundation\Console\ComponentMakeCommand;
 
@@ -28,8 +29,8 @@ final class ThemeComponentMakeCommand extends ComponentMakeCommand
             return (string) parent::viewPath($path);
         }
 
-        /** @var \AlizHarb\Themer\ThemeManager $manager */
-        $manager = app(\AlizHarb\Themer\ThemeManager::class);
+        /** @var ThemeManager $manager */
+        $manager = app(ThemeManager::class);
         $theme = $manager->all()->get($themeName);
 
         if (! $theme) {
@@ -53,8 +54,8 @@ final class ThemeComponentMakeCommand extends ComponentMakeCommand
             return (string) parent::getPath($name);
         }
 
-        /** @var \AlizHarb\Themer\ThemeManager $manager */
-        $manager = app(\AlizHarb\Themer\ThemeManager::class);
+        /** @var ThemeManager $manager */
+        $manager = app(ThemeManager::class);
         $theme = $manager->all()->get($themeName);
 
         if (! $theme) {

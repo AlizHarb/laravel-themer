@@ -7,6 +7,8 @@ namespace AlizHarb\Themer\Console\Commands;
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
+use Symfony\Component\Console\Input\InputArgument;
 
 /**
  * Artisan command to publish or symlink theme assets to the public directory.
@@ -46,7 +48,7 @@ final class PublishThemeAssetsCommand extends Command
 
             $themes = collect([$theme]);
         } else {
-            /** @var \Illuminate\Support\Collection<string, Theme> $themes */
+            /** @var Collection<string, Theme> $themes */
             $themes = $manager->all();
         }
 
@@ -86,7 +88,7 @@ final class PublishThemeAssetsCommand extends Command
     protected function getArguments(): array
     {
         return [
-            ['theme', \Symfony\Component\Console\Input\InputArgument::OPTIONAL, 'The name of the theme to publish assets for', null],
+            ['theme', InputArgument::OPTIONAL, 'The name of the theme to publish assets for', null],
         ];
     }
 }

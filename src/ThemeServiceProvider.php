@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer;
 
+use AlizHarb\Modular\Livewire\Commands\ModularLivewireMakeCommand;
 use AlizHarb\Themer\Console\Commands\ActivateThemeCommand;
 use AlizHarb\Themer\Console\Commands\Laravel\ThemeComponentMakeCommand;
 use AlizHarb\Themer\Console\Commands\Laravel\ThemeLivewireLayoutCommand;
@@ -19,12 +20,17 @@ use AlizHarb\Themer\Console\Commands\ThemeClearCommand;
 use AlizHarb\Themer\Console\Commands\ThemeCloneCommand;
 use AlizHarb\Themer\Console\Commands\ThemeDeleteCommand;
 use AlizHarb\Themer\Console\Commands\ThemeDevCommand;
+use AlizHarb\Themer\Console\Commands\ThemeInfoCommand;
 use AlizHarb\Themer\Console\Commands\ThemeInstallCommand;
 use AlizHarb\Themer\Console\Commands\ThemeNpmCommand;
 use AlizHarb\Themer\Console\Commands\ThemeUpgradeCommand;
 use AlizHarb\Themer\Contracts\ThemerPlugin;
 use AlizHarb\Themer\Plugins\ModulesPlugin;
+use Exception;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Foundation\Console\ComponentMakeCommand;
+use Illuminate\Foundation\Console\ViewMakeCommand;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -69,13 +75,13 @@ class ThemeServiceProvider extends ServiceProvider
         // Bind the provider instance so it can be resolved by dependent packages
         $this->app->instance(self::class, $this);
 
-        $this->app->singleton(ThemeManager::class, function (): \AlizHarb\Themer\ThemeManager {
+        $this->app->singleton(ThemeManager::class, function (): ThemeManager {
             return new ThemeManager();
         });
 
         $this->app->alias(ThemeManager::class, 'themer');
 
-        /** @var \Illuminate\Routing\Router $router */
+        /** @var Router $router */
         $router = app('router');
         $router->aliasMiddleware('theme', Http\Middleware\SetTheme::class);
 
@@ -90,11 +96,11 @@ class ThemeServiceProvider extends ServiceProvider
      */
     protected function registerThemeCommands(): void
     {
-        $this->app->extend(\Illuminate\Foundation\Console\ComponentMakeCommand::class, function (mixed $command, Application $app): object {
+        $this->app->extend(ComponentMakeCommand::class, function (mixed $command, Application $app): object {
             return $app->make(ThemeComponentMakeCommand::class);
         });
 
-        $this->app->extend(\Illuminate\Foundation\Console\ViewMakeCommand::class, function (mixed $command, Application $app): object {
+        $this->app->extend(ViewMakeCommand::class, function (mixed $command, Application $app): object {
             return $app->make(ThemeViewMakeCommand::class);
         });
 
@@ -107,7 +113,7 @@ class ThemeServiceProvider extends ServiceProvider
             foreach ($commands as $original => $themeCommand) {
                 $this->app->extend($original, function (mixed $command, Application $app) use ($themeCommand): object {
                     // If the command is already overridden by Modular, don't break it
-                    if ($command instanceof \AlizHarb\Modular\Livewire\Commands\ModularLivewireMakeCommand) {
+                    if ($command instanceof ModularLivewireMakeCommand) {
                         return $command;
                     }
 
@@ -138,7 +144,7 @@ class ThemeServiceProvider extends ServiceProvider
         if ($active !== '') {
             try {
                 $manager->set($active);
-            } catch (\Exception) {
+            } catch (Exception) {
                 // Silently ignore if theme doesn't exist yet
             }
         }
@@ -169,6 +175,7 @@ class ThemeServiceProvider extends ServiceProvider
         ], 'themer-config');
 
         $this->commands([
+            ThemeInfoCommand::class,
             ThemeInstallCommand::class,
             PublishThemeAssetsCommand::class,
             ListThemesCommand::class,
@@ -192,11 +199,22 @@ class ThemeServiceProvider extends ServiceProvider
     protected function registerViteOverride(): void
     {
         Blade::directive('vite', function (string $expression): string {
-            return sprintf('<?php echo %s::vite(%s); ?>', \AlizHarb\Themer\ThemeAsset::class, $expression);
+            return sprintf('<?php echo %s::vite(%s); ?>', ThemeAsset::class, $expression);
         });
 
         Blade::directive('theme_include', function (string $expression): string {
-            return "<?php echo \$__env->make('theme::' . str_replace(['\'', '\"'], '', $expression), \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>";
+            return sprintf(
+                "<?php echo \$__env->make('theme::' . str_replace(['\'', '\"'], '', %s), Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>",
+                $expression
+            );
+        });
+        // Blade Directives
+        Blade::directive('theme_asset', function ($expression) {
+            return sprintf('<?php echo %s::url(%s); ?>', ThemeAsset::class, $expression);
+        });
+
+        Blade::directive('theme_vite', function ($expression) {
+            return sprintf('<?php echo %s::vite(%s); ?>', ThemeAsset::class, $expression);
         });
     }
 }

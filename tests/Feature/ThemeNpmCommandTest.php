@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AlizHarb\Themer\Tests\Feature;
 
 use Illuminate\Support\Facades\File;
+use Mockery;
 
 it('fails if theme does not exist for npm command', function () {
     app('themer')->scan(base_path('themes'));
@@ -29,6 +30,12 @@ it('can run npm commands for a theme', function () {
 
     $manager = app('themer');
     expect($manager->find('test-theme'))->not->toBeNull();
+
+    // Mock the Symfony Process
+    $mockProcess = Mockery::mock('overload:Symfony\Component\Process\Process');
+    $mockProcess->shouldReceive('setTimeout')->andReturnSelf();
+    $mockProcess->shouldReceive('run')->andReturn(0);
+    $mockProcess->shouldReceive('isSuccessful')->andReturn(true);
 
     // Verify the command logic
     $this->artisan('theme:npm', ['args' => ['install', 'lodash'], '--theme' => 'test-theme'])
