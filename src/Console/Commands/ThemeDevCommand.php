@@ -36,6 +36,11 @@ final class ThemeDevCommand extends Command
     public function handle(ThemeManager $manager): int
     {
         $themeName = (string) $this->getTheme();
+
+        if (empty($themeName)) {
+            $themeName = (string) config('themer.active', 'default');
+        }
+
         $theme = $manager->find($themeName);
 
         if (! $theme) {

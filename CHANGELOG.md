@@ -2,9 +2,35 @@
 
 All notable changes to `laravel-themer` will be documented in this file.
 
+## v1.3.0 - 2026-03-01
+
+### New Features & Power Tools
+
+- **Native Vite Integration**: Refactored `ThemeManager` to natively hook into Laravel 11/12/13's `Vite::useBuildDirectory` and `Vite::useHotFile()`. The legacy symlink/copy workaround for `theme:publish` is no longer the primary Vite pipeline. Themes can simply use standard `@vite` tags.
+- **PreviewTheme Middleware**: Added a dedicated middleware that allows administrators or internal tools to securely preview inactive themes using Signed URLs or the `?preview_theme=slug` query parameter.
+- **System Event Hooks**: Added a `hooks` array property to the `theme.json` configuration. Themes can now execute native Artisan or Shell commands on specific lifecycle events (e.g., `'after_activate' => ['php artisan db:seed --class=EcommerceSeeder']`).
+- **Safe Mode Fallback**: Improved `ThemeManager::set()` and `ThemeActivating` dispatch to natively catch fatal theme boot exceptions. If a theme's `ThemeServiceProvider` crashes the application, Safe Mode intercepts the error, logs it, and silently fails-over to the default configuration theme, drastically improving production reliability.
+- **Zero-IO Production Cache**: Supercharged `theme:cache`. It now fully analyzes and serializes the deep inheritance chain of every theme into `bootstrap/cache/themes.php`. The `ThemeManager` boots instantly from this array, completely bypassing filesystem I/O in production.
+- **Laravel 13 Support**: Formalized compatibility constraints for Laravel 13 within the package's dependencies (`illuminate/support`, `illuminate/contracts`, `illuminate/view`).
+
+### Developer Experience & Workflow Automation
+
+- **Interactive CLI Wizard**: Refactored `theme:make` and `theme:activate` to natively use `laravel/prompts`. Creating a theme now initiates a beautiful interactive wizard for author, description, and options if arguments are omitted.
+- **Theme Linter Command**: Introduced `php artisan theme:lint {theme?}`. This isolates code formatting by safely spinning up Laravel Pint for the theme's PHP classes, and concurrently triggering `npm run format` for its CSS/JS assets within a single command.
+- **Auto-Proxy Dev Command**: Upgraded `php artisan theme:dev` to automatically detect the currently active theme context if none is manually specified.
+- **Git Workspace Synchronization**: `theme:make` now automatically copies a robust `.gitignore` stub into newly generated themes so their vendor/build assets are ignored properly out of the box.
+- **Upgrade Path Automation**: The `php artisan theme:upgrade` utility now gracefully automates the v1.2.x -> v1.3.0 schema migration. It scans existing themes, injects missing `.gitignore` files, and safely initializes `hooks` structures inside their `theme.json` configuration.
+
+### Bug Fixes & Refinements
+
+- **Stability**: Refactored underlying command/process integrations which resolved sporadic mock exceptions. The package maintains a 100% passing Pest test-suite and zero errors on PHPStan level-max.
+
+---
+
 ## v1.2.1 - 2026-02-06
 
 ### DX & Diagnostics
+
 - **theme:info Command**: New diagnostic command to display exhaustive theme metadata, resource detection, and inheritance chains.
 - **Enhanced theme:list**: Added Version and Author columns with sorted and colorized output.
 - **Improved theme:check**: Added author validation and optimization suggestions.

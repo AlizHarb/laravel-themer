@@ -144,8 +144,9 @@ final class ThemeUpgradeCommand extends Command
             }
 
             // Standardize version
-            if (! isset($config['version'])) {
-                $config['version'] = $theme->version ?: '1.0.0';
+            // Standardize hooks
+            if (! isset($config['hooks'])) {
+                $config['hooks'] = (object) [];
             }
         }
 

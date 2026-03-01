@@ -15,7 +15,7 @@ it('executes the full theme lifecycle flow', function () {
     $manager = app('themer');
 
     // 1. Create a theme using Artisan
-    $this->artisan('theme:make "Flow Theme"')
+    $this->artisan('theme:make "Flow Theme" --no-interaction')
         ->assertExitCode(0);
 
     $themePath = base_path('themes/flow-theme');

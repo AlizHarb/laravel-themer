@@ -16,7 +16,8 @@
 - 📦 **NPM Workspaces**: Zero-config workspace integration for shared dependencies and optimized storage.
 - ⚡ **Asset Shortcuts**: Launch dev servers or build theme assets directly via `theme:dev` and `theme:build`.
 - 🛠️ **Theme Management**: Create, clone, safe-delete, and activate themes with consistent `--theme` support.
-- 🚀 **Zero-IO Discovery**: High-performance architecture that eliminates filesystem scans in production via deep caching.
+- 🚀 **Zero-IO Production Cache**: High-performance architecture that evaluates deep inheritance chains and serializes them into a single fast-boot PHP array.
+- ✨ **Interactive Wizards**: Beautiful CLI prompts for generating and activating themes using `laravel/prompts`.
 - 🌈 **Rich Metadata**: Support for `screenshots`, `tags`, and management flags (`removable`, `disableable`) in `theme.json`.
 - ⚡ **Livewire 4 Integration**: First-class support for Livewire components and layouts with theme-aware resolution.
 - 🎨 **View Overrides**: Intelligent view resolution cascading from Active Theme -> Parent Theme -> Application.
@@ -26,10 +27,9 @@
 - 🛣️ **Route Middleware**: Enforce specific themes for routes or groups via `middleware('theme:name')`.
 - 🧩 **Modular Support**: Native integration with `laravel-modular` including dependency verification in `theme:check`.
 - 🛡️ **Hierarchy Guard**: Built-in validation to detect circular dependencies, missing parents, and asset health.
-- 🔧 **Artisan Commands**: A comprehensive suite of commands (`make`, `npm`, `dev`, `build`, `clone`, `delete`, `list`, `check`, `cache`) to manage themes.
+- 🔧 **Artisan Commands**: A comprehensive suite of commands (`make`, `npm`, `dev`, `build`, `clone`, `delete`, `list`, `check`, `cache`, `lint`) to natively manage themes.
 
 ## 📚 Documentation
-
 
 For full documentation, please visit [**alizharb.github.io/laravel-themer**](https://alizharb.github.io/laravel-themer) or browse the [docs/](docs/) directory.
 
@@ -139,7 +139,6 @@ php artisan make:livewire Header --theme=dark-theme
 ```
 
 ---
-
 
 ## 🧪 Testing
 

@@ -1,14 +1,36 @@
-# Upgrade Guide: Laravel Themer v1.1.x to v1.2.0
+# Upgrade Guide: Laravel Themer
+
+## Upgrading from v1.2.x to v1.3.0
+
+Laravel Themer v1.3.0 introduces System Hooks, Secure Theme Previews, and Git workspace automation.
+
+### Automated Upgrade to v1.3.0 (Recommended)
+
+You can easily upgrade all your existing themes using the built-in upgrade command:
+
+```bash
+php artisan theme:upgrade
+```
+
+This command will automatically:
+
+1. Synchronize `.gitignore` rules in any theme missing them.
+2. Add the native `hooks` property to your `theme.json` configuration file, preparing your themes for System Event Hooks.
+
+---
+
+## Upgrading from v1.1.x to v1.2.0
 
 Laravel Themer v1.2.0 introduces several new features and significant internal improvements for type safety and stability.
 
 ---
 
-## Automated Upgrade (Recommended)
+### Automated Upgrade to v1.2.0 (Recommended)
 
 We have provided a new Artisan command to automate most of the upgrade process.
 
 1.  **Run the upgrade command**:
+
     ```bash
     # Upgrade all themes
     php artisan theme:upgrade
@@ -21,10 +43,7 @@ We have provided a new Artisan command to automate most of the upgrade process.
     - Add `package.json` to any theme that is missing it.
     - Add `vite.config.js` to any theme that is missing it.
     - Automatically sync the `vite` version with your root project.
-    - Configure **NPM Workspaces** in your root `package.json`.
     - Add helper scripts (`themes:dev`, `themes:build`) to your root `package.json`.
-
----
 
 ---
 
@@ -45,13 +64,17 @@ php artisan theme:build --theme=my-theme
 ## New Management Tools
 
 ### Cloning
+
 Quickly create a new theme based on an existing one.
+
 ```bash
 php artisan theme:clone new-theme --theme=source-theme
 ```
 
 ### Safe Deletion
+
 Delete themes and their published assets. The command respects the `removable` flag in `theme.json` to prevent accidental deletion of core themes.
+
 ```bash
 php artisan theme:delete --theme=temporary-theme
 ```
@@ -85,6 +108,7 @@ Themes now support `removable` and `disableable` flags in `theme.json` for bette
 ---
 
 ## Initialize Workspaces
+
 After running the upgrade command, initialize your workspaces:
 
 ```bash

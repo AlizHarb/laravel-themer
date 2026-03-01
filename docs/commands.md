@@ -13,9 +13,11 @@ php artisan theme:make {name} [options]
 ```
 
 **Arguments:**
+
 - `name` - The name of the theme (e.g., "MyTheme")
 
 **Options:**
+
 - `--parent=` - Optional parent theme for inheritance
 - `--description=` - Theme description
 - `--author=` - Theme author name
@@ -51,20 +53,26 @@ php artisan theme:activate {theme?} [options]
 ```
 
 **Arguments:**
+
 - `theme` - Theme name or slug (optional, will prompt if not provided)
 
 **Options:**
+
 - `--no-interaction` - Skip confirmation prompts
 
 **Examples:**
 
 ```bash
-# Interactive selection
-php artisan theme:activate
-
 # Direct activation
 php artisan theme:activate portfolio
 ```
+
+### Previewing Themes
+
+Before activating a theme globally, you can preview it securely by appending the `?preview_theme=slug` parameter to any URL in your application. This is handled by the `PreviewTheme` middleware:
+
+1. In local environments (`APP_ENV=local`): Appending `?preview_theme=my-theme` works instantly.
+2. In production: It requires a valid Signed Route URL unless `themer.preview.enabled` is explicitly set to `true` in your configuration.
 
 ---
 
@@ -77,6 +85,7 @@ php artisan theme:list
 ```
 
 **Output includes:**
+
 - Theme name and slug
 - Version
 - Parent theme (if any)
@@ -95,9 +104,11 @@ php artisan theme:info {theme?}
 ```
 
 **Arguments:**
+
 - `theme` - Theme name or slug (optional, uses active theme if not provided)
 
 **Displays:**
+
 - **Basic Info**: Name, Slug, Version, Author, and Path.
 - **Resource Detection**: Presence of Views, Translations, Service Provider, and Livewire components.
 - **Inheritance**: Full parent chain and immediate parent.
@@ -132,9 +143,11 @@ php artisan theme:delete {theme} [options]
 ```
 
 **Arguments:**
+
 - `theme` - Theme name or slug
 
 **Options:**
+
 - `--force` - Skip confirmation prompt
 
 **Examples:**
@@ -160,6 +173,7 @@ php artisan theme:clone {source} {destination}
 ```
 
 **Arguments:**
+
 - `source` - Source theme name or slug
 - `destination` - New theme name
 
@@ -184,6 +198,7 @@ php artisan theme:publish {theme?}
 ```
 
 **Arguments:**
+
 - `theme` - Theme name or slug (optional, publishes all if not provided)
 
 **Examples:**
@@ -207,12 +222,17 @@ php artisan theme:dev {theme}
 ```
 
 **Arguments:**
-- `theme` - Theme name or slug
+
+- `theme` - Theme name or slug (optional, auto-detects active theme if omitted)
 
 **Example:**
 
 ```bash
+# Start dev server for specific theme
 php artisan theme:dev portfolio
+
+# Start dev server for the currently active theme automatically
+php artisan theme:dev
 ```
 
 This runs `npm run dev` in the theme's directory with hot module replacement.
@@ -228,6 +248,7 @@ php artisan theme:build {theme}
 ```
 
 **Arguments:**
+
 - `theme` - Theme name or slug
 
 **Example:**
@@ -249,6 +270,7 @@ php artisan theme:npm {theme} {command}
 ```
 
 **Arguments:**
+
 - `theme` - Theme name or slug
 - `command` - NPM command to run
 
@@ -268,6 +290,38 @@ php artisan theme:npm portfolio "run custom-script"
 ---
 
 ## Maintenance
+
+### `theme:lint`
+
+Lint and automatically format a specific theme's PHP code (using Laravel Pint) and frontend assets (using NPM `format` or `lint` scripts).
+
+```bash
+php artisan theme:lint {theme?} [options]
+```
+
+**Arguments:**
+
+- `theme` - Theme name or slug (optional, uses active theme if not provided)
+
+**Options:**
+
+- `--php` - Only lint PHP files
+- `--assets` - Only lint frontend JS/CSS assets
+
+**Examples:**
+
+```bash
+# Lint both PHP and assets for the active theme
+php artisan theme:lint
+
+# Lint specific theme
+php artisan theme:lint portfolio
+
+# Only run Laravel Pint on the theme's PHP files
+php artisan theme:lint portfolio --php
+```
+
+---
 
 ### `theme:cache`
 
@@ -302,9 +356,11 @@ php artisan theme:check {theme?}
 ```
 
 **Arguments:**
+
 - `theme` - Theme name or slug (optional, checks all if not provided)
 
 **Checks:**
+
 - Theme hierarchy integrity
 - Circular dependency detection
 - Missing parent themes
@@ -329,9 +385,11 @@ php artisan theme:upgrade {theme?}
 ```
 
 **Arguments:**
+
 - `theme` - Theme name or slug (optional, upgrades all if not provided)
 
 **What it does:**
+
 - Migrates old asset structures
 - Updates `package.json` and `vite.config.js`
 - Runs `themer:install` to configure NPM workspaces
@@ -349,6 +407,7 @@ php artisan themer:install
 ```
 
 **What it does:**
+
 - Publishes `config/themer.php`
 - Creates `themes/` directory
 - Configures NPM Workspaces in root `package.json`
@@ -375,6 +434,7 @@ php artisan make:livewire home --class --theme=portfolio
 ```
 
 Creates:
+
 - `themes/portfolio/app/Livewire/Home.php`
 - `themes/portfolio/resources/views/livewire/home.blade.php`
 

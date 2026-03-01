@@ -16,7 +16,7 @@ it('can generate a new theme structure', function () {
         File::deleteDirectory($fullPath);
     }
 
-    $this->artisan("theme:make \"{$themeName}\"")
+    $this->artisan("theme:make \"{$themeName}\" --no-interaction")
         ->assertExitCode(0)
         ->expectsOutputToContain("Theme [{$themeName}] created successfully");
 

@@ -8,6 +8,9 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\text;
+
 /**
  * Artisan command to generate a new theme structure.
  */
@@ -18,7 +21,7 @@ final class MakeThemeCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'theme:make {name : The name of the theme} {--parent= : Optional parent theme name} {--description= : Theme description} {--author= : Theme author} {--tags= : Comma-separated tags} {--provider : Generate a ThemeServiceProvider}';
+    protected $signature = 'theme:make {name? : The name of the theme} {--parent= : Optional parent theme name} {--description= : Theme description} {--author= : Theme author} {--tags= : Comma-separated tags} {--provider : Generate a ThemeServiceProvider}';
 
     /**
      * The console command description.
@@ -32,8 +35,23 @@ final class MakeThemeCommand extends Command
      */
     public function handle(): int
     {
+        /** @var string|null $nameInput */
+        $nameInput = $this->argument('name');
+
+        if (! $nameInput) {
+            $nameInput = text(
+                label: 'What is the name of your new theme?',
+                placeholder: 'E.g. E-Commerce Pro',
+                required: true,
+                validate: fn (string $value) => match (true) {
+                    empty(trim($value)) => 'The theme name is required.',
+                    default => null
+                }
+            );
+        }
+
         /** @var string $name */
-        $name = $this->argument('name');
+        $name = $nameInput;
         $slug = Str::slug($name);
 
         /** @var string $themesPath */
@@ -46,11 +64,45 @@ final class MakeThemeCommand extends Command
             return self::FAILURE;
         }
 
+        $this->gatherOptionalData();
+
         $this->createThemeStructure($path, $name, $slug);
 
         $this->components->info(sprintf('Theme [%s] created successfully at [%s].', $name, $path));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Gather interactive data using Prompts if not provided via options.
+     */
+    protected function gatherOptionalData(): void
+    {
+        if (! $this->option('description') && ! $this->option('no-interaction')) {
+            $desc = text(
+                label: 'Theme description (optional)',
+                placeholder: 'A professional Laravel theme.'
+            );
+            $this->input->setOption('description', $desc);
+        }
+
+        if (! $this->option('author') && ! $this->option('no-interaction')) {
+            $author = text(
+                label: 'Theme author (optional)',
+                placeholder: 'Your Name or Company'
+            );
+            $this->input->setOption('author', $author);
+        }
+
+        if (! $this->option('provider') && ! $this->option('no-interaction')) {
+            $provider = confirm(
+                label: 'Would you like to generate a dedicated ThemeServiceProvider?',
+                default: true
+            );
+            if ($provider) {
+                $this->input->setOption('provider', true);
+            }
+        }
     }
 
     /**
@@ -85,6 +137,7 @@ final class MakeThemeCommand extends Command
             ],
             'removable' => true,
             'disableable' => true,
+            'hooks' => (object) [],
         ];
 
         File::put(

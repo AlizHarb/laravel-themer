@@ -67,8 +67,15 @@
         },
         "tags": {
             "type": "array",
-            "items": { "type": "string" },
-            "description": "Tags for categorizing the theme."
+            "items": { "type": "string" }
+        },
+        "hooks": {
+            "type": "object",
+            "description": "System event hooks for themes.",
+            "additionalProperties": {
+                "type": "array",
+                "items": { "type": "string" }
+            }
         }
     },
     "required": ["name", "slug", "asset_path"]

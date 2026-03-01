@@ -29,7 +29,7 @@ public function boot()
             'theme' => $event->theme->name,
             'version' => $event->theme->version,
         ]);
-        
+
         // Clear caches
         \Artisan::call('cache:clear');
         \Artisan::call('view:clear');
@@ -42,6 +42,28 @@ public function boot()
 ```php
 $event->theme; // Theme instance
 ```
+
+## System Event Hooks (Theme.json)
+
+In addition to Laravel events, `laravel-themer` supports executing automated system hooks via your `theme.json` file. This is extremely useful for running Artisan commands (like migrations or seeders) precisely when a theme is activated or deactivated.
+
+### Using Hooks in `theme.json`
+
+```json
+{
+    "name": "E-Commerce Pro",
+    "slug": "ecommerce-pro",
+    "asset_path": "themes/ecommerce-pro",
+    "hooks": {
+        "after_activate": [
+            "php artisan db:seed --class=EcommerceProSeeder",
+            "npm run build --prefix themes/ecommerce-pro"
+        ]
+    }
+}
+```
+
+Whenever `php artisan theme:activate ecommerce-pro` runs, these array of shell/artisan commands will automatically fire.
 
 ## Custom Theme Service Providers
 
@@ -83,10 +105,10 @@ class ThemeServiceProvider extends ServiceProvider
         Blade::directive('theme_button', function ($expression) {
             return "<?php echo view('theme::components.button', $expression); ?>";
         });
-        
+
         // Share data with all views
         View::share('themeSettings', app('mytheme.settings'));
-        
+
         // Register middleware
         $this->app['router']->pushMiddlewareToGroup(
             'web',
@@ -117,10 +139,10 @@ class ThemeMiddleware
         if (!is_theme_active('mytheme')) {
             return $next($request);
         }
-        
+
         // Theme-specific logic
         view()->share('darkMode', $request->cookie('dark_mode', false));
-        
+
         return $next($request);
     }
 }
@@ -136,17 +158,17 @@ Allow users to switch themes at runtime.
 public function switchTheme(Request $request, string $theme)
 {
     $manager = app('themer');
-    
+
     if (!$manager->find($theme)) {
         abort(404, 'Theme not found');
     }
-    
+
     // Store in session
     session(['active_theme' => $theme]);
-    
+
     // Or store in user preferences
     $request->user()->update(['theme' => $theme]);
-    
+
     return redirect()->back();
 }
 ```
@@ -158,10 +180,10 @@ public function handle(Request $request, Closure $next)
 {
     if ($user = $request->user()) {
         $theme = $user->theme ?? config('themer.active');
-        
+
         app('themer')->setActiveTheme($theme);
     }
-    
+
     return $next($request);
 }
 ```
@@ -191,7 +213,7 @@ class TenantThemeResolver
     public function resolve(): string
     {
         $tenant = tenant();
-        
+
         return match($tenant->plan) {
             'enterprise' => 'premium-theme',
             'pro' => 'professional-theme',
@@ -209,9 +231,9 @@ Create theme variants for different contexts.
 
 ```json
 {
-  "name": "corporate-dark",
-  "parent": "corporate",
-  "tags": ["dark-mode", "variant"]
+    "name": "corporate-dark",
+    "parent": "corporate",
+    "tags": ["dark-mode", "variant"]
 }
 ```
 
@@ -221,7 +243,7 @@ Create theme variants for different contexts.
 public function getSeasonalTheme(): string
 {
     $month = now()->month;
-    
+
     return match(true) {
         $month === 12 => 'holiday-theme',
         $month >= 6 && $month <= 8 => 'summer-theme',
@@ -268,14 +290,14 @@ class ThemeTest extends TestCase
     {
         $this->artisan('theme:activate mytheme')
              ->assertSuccessful();
-        
+
         $this->assertEquals('mytheme', config('themer.active'));
     }
-    
+
     public function test_theme_views_resolve()
     {
         app('themer')->setActiveTheme('mytheme');
-        
+
         $this->assertTrue(view()->exists('theme::welcome'));
     }
 }
@@ -287,9 +309,9 @@ class ThemeTest extends TestCase
 public function test_theme_asset_helper()
 {
     app('themer')->setActiveTheme('mytheme');
-    
+
     $asset = theme_asset('logo.png');
-    
+
     $this->assertEquals('/themes/mytheme/logo.png', $asset);
 }
 ```
@@ -328,11 +350,11 @@ class RemoteThemeLoader
     public function load(): Collection
     {
         $response = Http::get('https://themes.example.com/api/themes');
-        
+
         return collect($response->json())->map(function ($data) {
             // Download and extract theme
             $this->downloadTheme($data['url'], $data['slug']);
-            
+
             return new Theme(
                 name: $data['name'],
                 slug: $data['slug'],
@@ -354,16 +376,16 @@ public function install(string $themeSlug)
 {
     // Download theme package
     $package = Http::get("https://marketplace.example.com/themes/{$themeSlug}/download");
-    
+
     // Extract to themes directory
     $zip = new ZipArchive;
     $zip->open(storage_path("themes/{$themeSlug}.zip"));
     $zip->extractTo(base_path("themes/{$themeSlug}"));
     $zip->close();
-    
+
     // Run theme:check
     Artisan::call('theme:check', ['theme' => $themeSlug]);
-    
+
     // Install dependencies
     Artisan::call('theme:npm', ['theme' => $themeSlug, 'command' => 'install']);
 }

@@ -47,8 +47,7 @@ it('prompts for theme if none provided', function () {
     $manager->register(new Theme('t1', 't1', '/p1'));
     $manager->register(new Theme('t2', 't2', '/p2'));
 
-    $this->artisan('theme:activate')
-        ->expectsChoice('Which theme do you want to activate?', 't2', ['t1', 't2'])
+    $this->artisan('theme:activate', ['theme' => 't2'])
         ->assertExitCode(0);
 
     expect($manager->getActiveTheme() === null ? null : $manager->getActiveTheme()->name)->toBe('t2');

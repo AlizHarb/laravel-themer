@@ -32,7 +32,8 @@ final readonly class Theme
         public bool $removable = true,
         public bool $disableable = true,
         public array $screenshots = [],
-        public array $tags = []
+        public array $tags = [],
+        public array $hooks = []
     ) {}
 
     /**
@@ -84,6 +85,7 @@ final readonly class Theme
             'disableable' => $this->disableable,
             'screenshots' => $this->screenshots,
             'tags' => $this->tags,
+            'hooks' => $this->hooks,
         ];
     }
 }

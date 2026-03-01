@@ -8,7 +8,10 @@ use AlizHarb\Themer\Exceptions\ThemerException;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\Process\Process;
 use Throwable;
+
+use function Laravel\Prompts\search;
 
 /**
  * Artisan command to activate a specific theme and update the .env file.
@@ -52,7 +55,13 @@ final class ActivateThemeCommand extends Command
             }
 
             /** @var string $themeName */
-            $themeName = $this->choice('Which theme do you want to activate?', $themes);
+            $themeName = search(
+                label: 'Which theme do you want to activate?',
+                options: fn (string $value) => strlen($value) > 0
+                    ? array_filter($themes, fn ($theme) => str_contains(strtolower($theme), strtolower($value)))
+                    : $themes,
+                placeholder: 'Search themes...'
+            );
         }
 
         try {
@@ -64,6 +73,17 @@ final class ActivateThemeCommand extends Command
 
             if (config('themer.assets.publish_on_activate', true)) {
                 $this->call('theme:publish', ['theme' => $themeName]);
+            }
+
+            $theme = $manager->find((string) $themeName);
+            if ($theme && isset($theme->hooks['after_activate']) && is_array($theme->hooks['after_activate'])) {
+                foreach ($theme->hooks['after_activate'] as $command) {
+                    $this->components->info(sprintf('Running hook for [%s]: %s', $themeName, $command));
+                    $process = Process::fromShellCommandline($command, base_path());
+                    $process->run(function (string $type, string $buffer) {
+                        $this->output->write($buffer);
+                    });
+                }
             }
         } catch (ThemerException $e) {
             $this->components->error($e->getMessage());

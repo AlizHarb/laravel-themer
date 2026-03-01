@@ -22,6 +22,7 @@ use AlizHarb\Themer\Console\Commands\ThemeDeleteCommand;
 use AlizHarb\Themer\Console\Commands\ThemeDevCommand;
 use AlizHarb\Themer\Console\Commands\ThemeInfoCommand;
 use AlizHarb\Themer\Console\Commands\ThemeInstallCommand;
+use AlizHarb\Themer\Console\Commands\ThemeLintCommand;
 use AlizHarb\Themer\Console\Commands\ThemeNpmCommand;
 use AlizHarb\Themer\Console\Commands\ThemeUpgradeCommand;
 use AlizHarb\Themer\Contracts\ThemerPlugin;
@@ -184,6 +185,7 @@ class ThemeServiceProvider extends ServiceProvider
             ThemeCacheCommand::class,
             ThemeClearCommand::class,
             ThemeCheckCommand::class,
+            ThemeLintCommand::class,
             ThemeUpgradeCommand::class,
             ThemeNpmCommand::class,
             ThemeDevCommand::class,

@@ -62,9 +62,11 @@ class ThemeManager
     }
 
     /**
-     * Scan the given directory for themes.
+     * Scan the given directory for themes (or return from cache if exists).
+     *
+     * @return Collection<string, Theme>
      */
-    public function scan(string $path): void
+    public function scan(string $path): Collection
     {
         $cachePath = $this->getCachePath();
 
@@ -86,7 +88,8 @@ class ThemeManager
              *     removable: bool,
              *     disableable: bool,
              *     screenshots: array<int, string>,
-             *     tags: array<int, string>
+             *     tags: array<int, string>,
+             *     hooks: array<string, array<int, string>>
              * }> $themes */
             $themes = require $cachePath;
             foreach ($themes as $data) {
@@ -107,14 +110,16 @@ class ThemeManager
                     $data['removable'],
                     $data['disableable'],
                     $data['screenshots'],
-                    $data['tags']
+                    $data['tags'],
+                    $data['hooks']
                 ));
             }
 
-            return;
+            return reset($themes) ? $this->themes : new Collection();
         }
+
         if (! File::isDirectory($path)) {
-            return;
+            return new Collection();
         }
 
         $directories = File::directories($path);
@@ -162,12 +167,15 @@ class ThemeManager
                     removable: (bool) ($config['removable'] ?? true),
                     disableable: (bool) ($config['disableable'] ?? true),
                     screenshots: (array) ($config['screenshots'] ?? []),
-                    tags: (array) ($config['tags'] ?? [])
+                    tags: (array) ($config['tags'] ?? []),
+                    hooks: (array) ($config['hooks'] ?? [])
                 );
 
                 $this->register($theme);
             }
         }
+
+        return $this->themes;
     }
 
     public function getCachePath(): string
@@ -261,13 +269,27 @@ class ThemeManager
             throw ThemeNotFoundException::make($themeName);
         }
 
-        ThemeActivating::dispatch($themeName);
+        try {
+            ThemeActivating::dispatch($themeName);
 
-        $this->activeTheme = $theme;
+            $this->activeTheme = $theme;
 
-        $this->registerResources($theme);
+            $this->registerResources($theme);
 
-        ThemeActivated::dispatch($theme);
+            ThemeActivated::dispatch($theme);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to load theme [{$themeName}]: ".$e->getMessage(), ['exception' => $e]);
+
+            // Safe Mode Fallback
+            /** @var string $fallback */
+            $fallback = config('themer.active', 'default');
+            if ($themeName !== $fallback && $this->themes->has($fallback)) {
+                $this->activeTheme = null;
+                $this->set($fallback);
+            } else {
+                throw $e;
+            }
+        }
     }
 
     /**
@@ -275,7 +297,20 @@ class ThemeManager
      */
     protected function registerThemeVite(Theme $theme): void
     {
-        // Placeholder for advanced Vite integration
+        if (! class_exists(\Illuminate\Foundation\Vite::class)) {
+            return;
+        }
+
+        /** @var \Illuminate\Foundation\Vite $vite */
+        $vite = app(\Illuminate\Foundation\Vite::class);
+
+        $hotPath = public_path(sprintf('themes/%s/hot', $theme->name));
+        $buildDirectory = file_exists($hotPath)
+            ? 'themes/'.$theme->name
+            : sprintf('themes/%s/build', $theme->name);
+
+        $vite->useBuildDirectory($buildDirectory);
+        $vite->useHotFile($hotPath);
     }
 
     /**
@@ -428,6 +463,31 @@ class ThemeManager
 
         if (! $theme instanceof Theme) {
             return new Collection();
+        }
+
+        if (app()->runningInConsole() === false && isset($theme->config['_inheritance_chain']) && is_array($theme->config['_inheritance_chain'])) {
+            return collect($theme->config['_inheritance_chain'])->map(function (array $data) {
+                return new Theme(
+                    $data['name'],
+                    $data['slug'],
+                    $data['path'],
+                    $data['assetPath'],
+                    $data['parent'],
+                    $data['config'],
+                    $data['version'],
+                    $data['author'],
+                    $data['authors'],
+                    $data['hasViews'],
+                    $data['hasTranslations'],
+                    $data['hasProvider'],
+                    $data['hasLivewire'],
+                    $data['removable'],
+                    $data['disableable'],
+                    $data['screenshots'],
+                    $data['tags'],
+                    $data['hooks'] ?? []
+                );
+            });
         }
 
         $parents = new Collection();
