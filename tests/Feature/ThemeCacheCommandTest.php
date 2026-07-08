@@ -41,7 +41,8 @@ it('can cache discovered themes', function () {
     // Verify cache payload
     $cachedData = require $manager->getCachePath();
     expect($cachedData)->toBeArray()
-        ->and($cachedData['cache-test-theme']['name'])->toBe('Cache Test Theme');
+        ->and($cachedData['themes']['cache-test-theme']['name'])->toBe('Cache Test Theme')
+        ->and($cachedData['meta'])->toHaveKey('manifest_hashes');
 
     // Cleanup
     File::deleteDirectory($themePath);

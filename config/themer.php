@@ -63,4 +63,11 @@ return [
         'layouts' => 'resources/views/layouts',
         'pages' => 'resources/views/livewire/pages',
     ],
+
+    'preview' => [
+        'enabled' => (bool) env('THEMER_PREVIEW_ENABLED', false),
+        'signed_urls' => true,
+        'ttl' => 60,
+        'allowed_environments' => ['local', 'staging'],
+    ],
 ];

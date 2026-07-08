@@ -33,7 +33,11 @@ final readonly class Theme
         public bool $disableable = true,
         public array $screenshots = [],
         public array $tags = [],
-        public array $hooks = []
+        public array $hooks = [],
+        public array $requires = [],
+        public array $conflicts = [],
+        public array $provides = [],
+        public array $tokens = []
     ) {}
 
     /**
@@ -86,6 +90,10 @@ final readonly class Theme
             'screenshots' => $this->screenshots,
             'tags' => $this->tags,
             'hooks' => $this->hooks,
+            'requires' => $this->requires,
+            'conflicts' => $this->conflicts,
+            'provides' => $this->provides,
+            'tokens' => $this->tokens,
         ];
     }
 }

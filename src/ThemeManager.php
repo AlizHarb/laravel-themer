@@ -9,11 +9,16 @@ use AlizHarb\Themer\Events\ThemeActivating;
 use AlizHarb\Themer\Exceptions\ThemeNotFoundException;
 use Closure;
 use Exception;
+use Illuminate\Foundation\Vite;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Translation\Translator;
+use Illuminate\View\FileViewFinder;
+use Livewire\Factory\Factory;
 use Livewire\Livewire;
 use RuntimeException;
 
@@ -71,7 +76,8 @@ class ThemeManager
         $cachePath = $this->getCachePath();
 
         if (! app()->runningUnitTests() && file_exists($cachePath)) {
-            /** @var array<int, array{
+            $cached = require $cachePath;
+            /** @var array<string, mixed>|array<int, array{
              *     name: string,
              *     slug: string,
              *     path: string,
@@ -89,9 +95,13 @@ class ThemeManager
              *     disableable: bool,
              *     screenshots: array<int, string>,
              *     tags: array<int, string>,
-             *     hooks: array<string, array<int, string>>
-             * }> $themes */
-            $themes = require $cachePath;
+             *     hooks: array<string, array<int, string>>,
+             *     requires?: array<string, mixed>,
+             *     conflicts?: array<int, string>,
+             *     provides?: array<int, string>,
+             *     tokens?: array<string, string|int|float|bool>
+             * }> $cached */
+            $themes = isset($cached['themes'], $cached['meta']) && is_array($cached['themes']) ? $cached['themes'] : $cached;
             foreach ($themes as $data) {
                 $this->register(new Theme(
                     $data['name'],
@@ -111,7 +121,11 @@ class ThemeManager
                     $data['disableable'],
                     $data['screenshots'],
                     $data['tags'],
-                    $data['hooks']
+                    $data['hooks'],
+                    $data['requires'] ?? [],
+                    $data['conflicts'] ?? [],
+                    $data['provides'] ?? [],
+                    $data['tokens'] ?? []
                 ));
             }
 
@@ -144,6 +158,16 @@ class ThemeManager
                 $author = $config['author'] ?? null;
                 /** @var array<int, array{name: string, email?: string, role?: string}> $authors */
                 $authors = $config['authors'] ?? [];
+                /** @var array<string, mixed> $requires */
+                $requires = is_array($config['requires'] ?? null) ? $config['requires'] : [];
+                /** @var array<int, string> $conflicts */
+                $conflicts = is_array($config['conflicts'] ?? null) ? array_values(array_filter($config['conflicts'], 'is_string')) : [];
+                /** @var array<int, string> $provides */
+                $provides = is_array($config['provides'] ?? null) ? array_values(array_filter($config['provides'], 'is_string')) : [];
+                /** @var array<string, string|int|float|bool> $tokens */
+                $tokens = is_array($config['tokens'] ?? null)
+                    ? array_filter($config['tokens'], fn (mixed $value): bool => is_string($value) || is_int($value) || is_float($value) || is_bool($value))
+                    : [];
 
                 // Check for slug uniqueness
                 if ($this->themes->has($slug)) {
@@ -168,7 +192,11 @@ class ThemeManager
                     disableable: (bool) ($config['disableable'] ?? true),
                     screenshots: (array) ($config['screenshots'] ?? []),
                     tags: (array) ($config['tags'] ?? []),
-                    hooks: (array) ($config['hooks'] ?? [])
+                    hooks: (array) ($config['hooks'] ?? []),
+                    requires: $requires,
+                    conflicts: $conflicts,
+                    provides: $provides,
+                    tokens: $tokens
                 );
 
                 $this->register($theme);
@@ -181,6 +209,76 @@ class ThemeManager
     public function getCachePath(): string
     {
         return app()->bootstrapPath('cache/themes.php');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getCacheMeta(): array
+    {
+        $cachePath = $this->getCachePath();
+
+        if (! file_exists($cachePath)) {
+            return [];
+        }
+
+        $cached = require $cachePath;
+
+        return is_array($cached) && isset($cached['meta']) && is_array($cached['meta']) ? $cached['meta'] : [];
+    }
+
+    public function cacheIsStale(): bool
+    {
+        $meta = $this->getCacheMeta();
+
+        if ($meta === []) {
+            return false;
+        }
+
+        return ($meta['manifest_hashes'] ?? []) !== $this->manifestHashes();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function buildCacheMeta(): array
+    {
+        return [
+            'cached_at' => now()->toIso8601String(),
+            'active' => $this->activeTheme?->slug,
+            'manifest_hashes' => $this->manifestHashes(),
+            'providers' => $this->all()
+                ->filter(fn (Theme $theme): bool => $theme->hasProvider)
+                ->map(fn (Theme $theme): string => $theme->slug)
+                ->values()
+                ->all(),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function manifestHashes(): array
+    {
+        /** @var string $themesPath */
+        $themesPath = config('themer.themes_path', base_path('themes'));
+
+        if (! File::isDirectory($themesPath)) {
+            return [];
+        }
+
+        $hashes = [];
+
+        foreach (File::directories($themesPath) as $directory) {
+            $manifest = $directory.'/theme.json';
+            if (File::exists($manifest)) {
+                $hashes[basename($directory)] = sha1((string) File::get($manifest));
+            }
+        }
+
+        ksort($hashes);
+
+        return $hashes;
     }
 
     /**
@@ -278,7 +376,7 @@ class ThemeManager
 
             ThemeActivated::dispatch($theme);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to load theme [{$themeName}]: ".$e->getMessage(), ['exception' => $e]);
+            Log::error("Failed to load theme [{$themeName}]: ".$e->getMessage(), ['exception' => $e]);
 
             // Safe Mode Fallback
             /** @var string $fallback */
@@ -297,12 +395,12 @@ class ThemeManager
      */
     protected function registerThemeVite(Theme $theme): void
     {
-        if (! class_exists(\Illuminate\Foundation\Vite::class)) {
+        if (! class_exists(Vite::class)) {
             return;
         }
 
-        /** @var \Illuminate\Foundation\Vite $vite */
-        $vite = app(\Illuminate\Foundation\Vite::class);
+        /** @var Vite $vite */
+        $vite = app(Vite::class);
 
         $hotPath = public_path(sprintf('themes/%s/hot', $theme->name));
         $buildDirectory = file_exists($hotPath)
@@ -397,7 +495,7 @@ class ThemeManager
         }
 
         // 3. Register for dynamic resolution (Active -> Parent -> App)
-        /** @var \Illuminate\View\FileViewFinder $finder */
+        /** @var FileViewFinder $finder */
         $finder = app('view')->getFinder();
 
         foreach (array_reverse($paths) as $path) {
@@ -423,7 +521,7 @@ class ThemeManager
             $langPath = $theme->path.'/lang';
         }
 
-        /** @var \Illuminate\Translation\Translator $translator */
+        /** @var Translator $translator */
         $translator = app()->make('translator');
         $lowerName = strtolower($theme->name);
 
@@ -485,7 +583,11 @@ class ThemeManager
                     $data['disableable'],
                     $data['screenshots'],
                     $data['tags'],
-                    $data['hooks'] ?? []
+                    $data['hooks'] ?? [],
+                    $data['requires'] ?? [],
+                    $data['conflicts'] ?? [],
+                    $data['provides'] ?? [],
+                    $data['tokens'] ?? []
                 );
             });
         }
@@ -607,6 +709,27 @@ class ThemeManager
         return $this->themes->get($themeName);
     }
 
+    public function token(string $key, mixed $default = null): mixed
+    {
+        if (! $this->activeTheme instanceof Theme) {
+            return $default;
+        }
+
+        return $this->activeTheme->tokens[$key] ?? $default;
+    }
+
+    /**
+     * @return array<string, string|int|float|bool>
+     */
+    public function tokens(): array
+    {
+        if (! $this->activeTheme instanceof Theme) {
+            return [];
+        }
+
+        return $this->activeTheme->tokens;
+    }
+
     /**
      * Register theme-specific Livewire support.
      */
@@ -689,7 +812,7 @@ class ThemeManager
                 $parents = $this->getInheritanceChain($this->activeTheme);
                 $themes = collect([$this->activeTheme])->merge($parents);
 
-                /** @var \Livewire\Factory\Factory $livewireFactory */
+                /** @var Factory $livewireFactory */
                 $livewireFactory = app('livewire.factory');
 
                 foreach ($themes as $theme) {
@@ -737,7 +860,7 @@ class ThemeManager
                     if (isset($internalRegistered[$currentAlias])) {
                         try {
                             $targetPath = $internalAlias.'::'.$searchName;
-                            /** @var \Livewire\Factory\Factory $livewireFactory */
+                            /** @var Factory $livewireFactory */
                             $livewireFactory = app('livewire.factory');
                             $class = $livewireFactory->resolveComponentClass($targetPath);
                             if ($class) {

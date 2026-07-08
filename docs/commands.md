@@ -335,6 +335,100 @@ This creates a cache file at `bootstrap/cache/themes.php` containing all discove
 
 ---
 
+### `theme:refresh`
+
+Clear and rebuild the theme discovery cache.
+
+```bash
+php artisan theme:refresh
+```
+
+Use this after changing `theme.json`, inheritance, providers, or deployment artifacts.
+
+---
+
+### `theme:doctor`
+
+Diagnose theme health and installation state.
+
+```bash
+php artisan theme:doctor
+php artisan theme:doctor --json
+php artisan theme:doctor --fix
+```
+
+Checks manifests, parents, screenshots, assets, stale cache, missing directories, and production safety.
+
+---
+
+### `theme:status`
+
+Display high-level theme system status.
+
+```bash
+php artisan theme:status
+php artisan theme:status --json
+```
+
+---
+
+### `theme:debug`
+
+Inspect a theme's manifest, resources, inheritance, tokens, and cache metadata.
+
+```bash
+php artisan theme:debug portfolio
+php artisan theme:debug portfolio --json
+```
+
+---
+
+### `theme:graph`
+
+Render the inheritance graph.
+
+```bash
+php artisan theme:graph
+php artisan theme:graph --format=json
+php artisan theme:graph --format=dot
+```
+
+---
+
+### `theme:why`
+
+Explain what a theme contributes and what depends on it.
+
+```bash
+php artisan theme:why portfolio
+php artisan theme:why portfolio --json
+```
+
+---
+
+### `theme:preview`
+
+Generate an inactive theme preview URL.
+
+```bash
+php artisan theme:preview portfolio
+php artisan theme:preview portfolio --signed --expires=30
+```
+
+---
+
+### `theme:tokens`
+
+Display theme design tokens.
+
+```bash
+php artisan theme:tokens portfolio
+php artisan theme:tokens portfolio --json
+php artisan theme:tokens portfolio --css
+```
+
+---
+
 ### `theme:clear`
 
 Clear the theme discovery cache.

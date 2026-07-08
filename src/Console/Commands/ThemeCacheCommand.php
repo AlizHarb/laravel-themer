@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Console\Commands;
 
+use AlizHarb\Themer\Events\ThemeCached;
+use AlizHarb\Themer\Events\ThemeCaching;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
@@ -31,6 +33,8 @@ class ThemeCacheCommand extends Command
     {
         $this->components->info('Compiling Laravel Themer Manifest...');
 
+        ThemeCaching::dispatch();
+
         $this->call('theme:clear');
 
         try {
@@ -54,11 +58,17 @@ class ThemeCacheCommand extends Command
                 $cachePayload[$slug] = $themeArray;
             }
 
-            $content = '<?php return '.var_export($cachePayload, true).';';
+            $payload = [
+                'meta' => $manager->buildCacheMeta(),
+                'themes' => $cachePayload,
+            ];
+
+            $content = '<?php return '.var_export($payload, true).';';
 
             File::put($cachePath, $content);
 
             $this->components->info(sprintf('Successfully cached %d themes into %s.', $themes->count(), 'bootstrap/cache/themes.php'));
+            ThemeCached::dispatch($themes->count());
 
             return self::SUCCESS;
         } catch (\Throwable $e) {

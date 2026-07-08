@@ -27,11 +27,17 @@
 - 🛣️ **Route Middleware**: Enforce specific themes for routes or groups via `middleware('theme:name')`.
 - 🧩 **Modular Support**: Native integration with `laravel-modular` including dependency verification in `theme:check`.
 - 🛡️ **Hierarchy Guard**: Built-in validation to detect circular dependencies, missing parents, and asset health.
+- 🧭 **Production Diagnostics**: `theme:doctor`, `theme:status`, `theme:debug`, `theme:graph`, and `theme:why` expose theme health for teams and CI.
+- 🧪 **Theme Previewing**: Generate inactive-theme preview URLs with optional signed expiration using `theme:preview`.
+- 🎛️ **Design Tokens**: Store brand tokens in `theme.json` and expose them with `theme_token()`, `theme:tokens`, and `@themeTokens`.
+- 🧠 **Laravel Boost Ready**: Ships Boost guidelines and a theme-development skill for AI-assisted workflows.
 - 🔧 **Artisan Commands**: A comprehensive suite of commands (`make`, `npm`, `dev`, `build`, `clone`, `delete`, `list`, `check`, `cache`, `lint`) to natively manage themes.
 
 ## 📚 Documentation
 
 For full documentation, please visit [**alizharb.github.io/laravel-themer**](https://alizharb.github.io/laravel-themer) or browse the [docs/](docs/) directory.
+
+For copy-ready release notes, see [RELEASE_NOTES_1.4.0.md](RELEASE_NOTES_1.4.0.md).
 
 ---
 
@@ -128,6 +134,38 @@ Switch the active theme globally:
 
 ```bash
 php artisan theme:activate dark-theme
+```
+
+### Production Diagnostics
+
+Inspect and validate your theme system:
+
+```bash
+php artisan theme:doctor
+php artisan theme:status
+php artisan theme:debug dark-theme --json
+php artisan theme:graph
+php artisan theme:why dark-theme
+```
+
+### Previewing Themes
+
+Generate a preview URL for an inactive theme:
+
+```bash
+php artisan theme:preview dark-theme --signed --expires=30
+```
+
+### Design Tokens
+
+Expose theme-specific brand tokens:
+
+```bash
+php artisan theme:tokens dark-theme --css
+```
+
+```blade
+@themeTokens
 ```
 
 ### Livewire Integration

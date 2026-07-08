@@ -2,6 +2,28 @@
 
 All notable changes to `laravel-themer` will be documented in this file.
 
+## v1.4.0 - 2026-07-08
+
+### Production Theme Operations
+
+- **Diagnostics Commands**: Added `theme:doctor`, `theme:status`, `theme:debug`, `theme:graph`, and `theme:why` for production visibility and CI automation.
+- **Cache Freshness**: Added cache metadata with manifest hashes and `theme:refresh` for safe rebuilds.
+- **Preview URLs**: Added `theme:preview` for inactive theme QA, including signed preview URL support.
+- **Lifecycle Events**: Added events for caching, refresh, and preview workflows.
+
+### Design System Support
+
+- **Design Tokens**: Added `tokens` support in `theme.json`.
+- **Token Helpers**: Added `theme_token()`, `theme_tokens()`, `@themeTokens`, and `theme:tokens`.
+
+### Manifest & Compatibility
+
+- **Manifest Validation**: Added validation for richer `theme.json` metadata including `requires`, `conflicts`, `provides`, and `tokens`.
+- **Laravel Boost**: Added package guidelines and a `laravel-themer-development` skill.
+- **Laravel 13 CI**: Expanded the GitHub Actions matrix for Laravel 13 and Orchestra Testbench 11.
+
+---
+
 ## v1.3.0 - 2026-03-01
 
 ### New Features & Power Tools

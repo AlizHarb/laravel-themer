@@ -41,3 +41,26 @@ if (! function_exists('is_theme_active')) {
         return (bool) $manager->isActive($themeName);
     }
 }
+
+if (! function_exists('theme_token')) {
+    function theme_token(string $key, mixed $default = null): mixed
+    {
+        /** @var ThemeManager $manager */
+        $manager = app('themer');
+
+        return $manager->token($key, $default);
+    }
+}
+
+if (! function_exists('theme_tokens')) {
+    /**
+     * @return array<string, string|int|float|bool>
+     */
+    function theme_tokens(): array
+    {
+        /** @var ThemeManager $manager */
+        $manager = app('themer');
+
+        return $manager->tokens();
+    }
+}

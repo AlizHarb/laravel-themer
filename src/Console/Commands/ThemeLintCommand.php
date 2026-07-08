@@ -55,8 +55,6 @@ final class ThemeLintCommand extends Command
 
             $this->components->info(sprintf('Linting Theme: %s [%s]', $theme->name, $theme->path));
 
-            $ran = false;
-
             $runPhp = (bool) $this->option('php');
             $runAssets = (bool) $this->option('assets');
 
@@ -67,18 +65,14 @@ final class ThemeLintCommand extends Command
 
             if ($runPhp) {
                 $this->lintPHP($theme->path);
-                $ran = true;
             }
 
             if ($runAssets) {
                 $this->lintAssets($theme->path);
-                $ran = true;
             }
 
-            if ($ran) {
-                $this->newLine();
-                $this->components->info('Linting completed successfully.');
-            }
+            $this->newLine();
+            $this->components->info('Linting completed successfully.');
 
             return self::SUCCESS;
         } catch (\Throwable $e) {

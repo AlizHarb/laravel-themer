@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AlizHarb\Themer\Console\Commands;
 
 use AlizHarb\Modular\ModuleRegistry;
+use AlizHarb\Themer\Support\ThemeManifestValidator;
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Console\Command;
@@ -30,7 +31,7 @@ class ThemeCheckCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ThemeManager $manager): int
+    public function handle(ThemeManager $manager, ThemeManifestValidator $validator): int
     {
         /** @var Collection<string, Theme> $themes */
         $themes = $manager->all();
@@ -39,10 +40,32 @@ class ThemeCheckCommand extends Command
         $this->components->info('Checking '.$themes->count().' themes for hierarchy integrity...');
 
         foreach ($themes as $theme) {
+            if (File::exists($theme->path.'/theme.json')) {
+                $manifest = json_decode((string) File::get($theme->path.'/theme.json'), true);
+                foreach ($validator->validate(is_array($manifest) ? $manifest : null, $theme->path) as $error) {
+                    $this->components->error("Theme [{$theme->name}] manifest error: {$error}");
+                    $status = self::FAILURE;
+                }
+            }
+
             // 1. Check Parent Existence
             if ($theme->parent && ! $themes->has($theme->parent)) {
                 $this->components->error("Theme [{$theme->name}] requires missing parent theme [{$theme->parent}]");
                 $status = self::FAILURE;
+            }
+
+            foreach (($theme->requires['themes'] ?? []) as $requiredTheme) {
+                if (is_string($requiredTheme) && ! $themes->has($requiredTheme)) {
+                    $this->components->error("Theme [{$theme->name}] requires missing theme [{$requiredTheme}]");
+                    $status = self::FAILURE;
+                }
+            }
+
+            foreach ($theme->conflicts as $conflict) {
+                if ($themes->has($conflict)) {
+                    $this->components->error("Theme [{$theme->name}] conflicts with installed theme [{$conflict}]");
+                    $status = self::FAILURE;
+                }
             }
 
             // 2. Check for Circular Dependencies
@@ -53,9 +76,13 @@ class ThemeCheckCommand extends Command
             }
 
             // 3. Check for Required Modules (laravel-modular)
-            $requires = $theme->config['requires'] ?? [];
-            if (! empty($requires) && is_array($requires)) {
-                foreach ($requires as $moduleName) {
+            $requiredModules = $theme->requires['modules'] ?? (array) ($theme->config['requires'] ?? []);
+            if (! empty($requiredModules) && is_array($requiredModules)) {
+                foreach ($requiredModules as $moduleName) {
+                    if (! is_string($moduleName)) {
+                        continue;
+                    }
+
                     if (! app()->bound('modular')) {
                         $this->components->warn("Theme [{$theme->name}] requires module [{$moduleName}] but laravel-modular is not installed.");
 

@@ -137,6 +137,18 @@ final class MakeThemeCommand extends Command
             ],
             'removable' => true,
             'disableable' => true,
+            'requires' => [
+                'themes' => [],
+                'modules' => [],
+                'packages' => (object) [],
+            ],
+            'conflicts' => [],
+            'provides' => [],
+            'tokens' => [
+                'color.primary' => '#2563eb',
+                'color.background' => '#ffffff',
+                'radius.card' => '1rem',
+            ],
             'hooks' => (object) [],
         ];
 

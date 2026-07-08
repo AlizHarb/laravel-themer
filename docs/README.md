@@ -1,6 +1,6 @@
 # Laravel Themer
 
-**Professional theme management for Laravel 11/12 applications with first-class Livewire 4 support.**
+**Professional theme management for Laravel 11/12/13 applications with first-class Livewire 4 support.**
 
 Laravel Themer is a production-ready package that brings powerful, flexible theming capabilities to your Laravel applications. Built with strict typing, zero-config modular integration, and performance optimization at its core.
 
@@ -13,6 +13,9 @@ Laravel Themer is a production-ready package that brings powerful, flexible them
 - **Production Optimized**: Smart asset publishing, request-level caching, and minimal boot overhead
 - **Strict Typing**: 100% PHPStan Level 5 compliance
 - **15+ Artisan Commands**: Complete CLI tooling for theme management
+- **Production Diagnostics**: Doctor, status, debug, graph, and why commands
+- **Design Tokens**: Theme-level tokens for brand systems
+- **Laravel Boost Ready**: AI-aware package guidelines and development skill
 
 ## Quick Start
 
@@ -56,3 +59,7 @@ php artisan theme:make MyTheme
 - [Configuration](configuration.md)
 - [Creating Your First Theme](quickstart.md)
 - [Commands Reference](commands.md)
+- [Diagnostics](diagnostics.md)
+- [Previewing](previewing.md)
+- [Design Tokens](design-tokens.md)
+- [Laravel Boost](boost.md)

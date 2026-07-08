@@ -5,6 +5,8 @@ namespace AlizHarb\Themer\Tests;
 use AlizHarb\Themer\ThemeManager;
 use AlizHarb\Themer\ThemeServiceProvider;
 use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\Facades\File;
+use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
@@ -23,7 +25,7 @@ class TestCase extends Orchestra
     protected function getPackageProviders($app): array
     {
         return [
-            \Livewire\LivewireServiceProvider::class,
+            LivewireServiceProvider::class,
             ThemeServiceProvider::class,
         ];
     }
@@ -43,7 +45,7 @@ class TestCase extends Orchestra
     {
         $themesPath = base_path('themes');
         if (is_dir($themesPath)) {
-            \Illuminate\Support\Facades\File::deleteDirectory($themesPath);
+            File::deleteDirectory($themesPath);
         }
 
         if (file_exists(base_path('.env'))) {

@@ -6,6 +6,7 @@ namespace AlizHarb\Themer\Tests\Feature;
 
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 
 it('can publish theme assets', function () {
@@ -20,7 +21,7 @@ it('can publish theme assets', function () {
     $theme = new Theme('publishing-theme', 'publishing-theme', $themePath);
     $manager->register($theme);
 
-    \Illuminate\Support\Facades\Config::set('themer.assets.symlink', false);
+    Config::set('themer.assets.symlink', false);
 
     $destination = public_path('themes/publishing-theme');
     if (File::exists($destination)) {
@@ -35,7 +36,7 @@ it('can publish theme assets', function () {
     $glob = glob($themePath.'/resources/assets/*');
 
     // Ensure config is set
-    \Illuminate\Support\Facades\Config::set('themer.assets.path', 'themes');
+    Config::set('themer.assets.path', 'themes');
 
     clearstatcache();
     $path = $themePath.'/resources/assets/style.css';

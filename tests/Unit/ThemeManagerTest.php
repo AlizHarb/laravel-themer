@@ -8,6 +8,7 @@ use AlizHarb\Themer\Exceptions\ThemeNotFoundException;
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Support\Facades\View;
+use Illuminate\View\FileViewFinder;
 
 it('can register a theme', function () {
     $manager = new ThemeManager();
@@ -51,7 +52,7 @@ it('registers theme views when set', function () {
 
     $finder = View::getFinder();
     /** @var array<string, array<int, string>> $hints */
-    $hints = $finder instanceof \Illuminate\View\FileViewFinder ? $finder->getHints() : [];
+    $hints = $finder instanceof FileViewFinder ? $finder->getHints() : [];
 
     expect($hints)->toHaveKey('theme')
         ->and($hints['theme'][0])->toContain($themePath.'/resources/views');

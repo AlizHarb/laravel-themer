@@ -65,7 +65,7 @@ final class ThemeAsset
                 : sprintf('themes/%s/build', $theme->name);
         }
 
-        /** @var \Illuminate\Foundation\Vite $vite */
+        /** @var Vite $vite */
         $vite = app(Vite::class);
 
         return (string) $vite($transformed, $buildDirectory);

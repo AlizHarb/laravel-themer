@@ -8,6 +8,7 @@ use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
+use Illuminate\View\FileViewFinder;
 
 it('discovers blade components directory', function () {
     $tempDir = __DIR__.'/../temp/blade-test';
@@ -27,7 +28,7 @@ it('discovers blade components directory', function () {
 
     $finder = View::getFinder();
     /** @var array<string, array<int, string>> $hints */
-    $hints = $finder instanceof \Illuminate\View\FileViewFinder ? $finder->getHints() : [];
+    $hints = $finder instanceof FileViewFinder ? $finder->getHints() : [];
 
     expect($hints)->toHaveKey('theme-components')
         ->and($hints['theme-components'][0])->toContain('components');

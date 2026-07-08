@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AlizHarb\Themer\Tests\Unit;
 
+use AlizHarb\Modular\Contracts\Activator;
+use AlizHarb\Modular\ModuleRegistry;
 use AlizHarb\Themer\Plugins\ModulesPlugin;
 use AlizHarb\Themer\ThemeManager;
 use Illuminate\Support\Facades\Config;
@@ -33,7 +35,7 @@ it('scans modules for themes', function () {
     Config::set('modular.paths.modules', $fixturePath);
 
     // Setup simple activator stub
-    $activator = new class() implements \AlizHarb\Modular\Contracts\Activator
+    $activator = new class() implements Activator
     {
         public function enable(string $module): void {}
 
@@ -64,7 +66,7 @@ it('scans modules for themes', function () {
     Config::set('modular.cache.path', __DIR__.'/../fixtures/modules_cache.php'); // Prevent writing to real cache
 
     // Use real ModuleRegistry
-    $registry = new \AlizHarb\Modular\ModuleRegistry();
+    $registry = new ModuleRegistry();
     app()->instance('AlizHarb\Modular\ModuleRegistry', $registry);
 
     /** @var ThemeManager $manager */

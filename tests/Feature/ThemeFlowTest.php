@@ -6,6 +6,7 @@ namespace AlizHarb\Themer\Tests\Feature;
 
 use AlizHarb\Themer\Theme;
 use AlizHarb\Themer\ThemeManager;
+use AlizHarb\Themer\Themer;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
@@ -65,7 +66,7 @@ it('executes the full theme lifecycle flow', function () {
     // Manual registration of the 'theme' namespace for the test context
     View::addNamespace('theme', $themePath.'/resources/views');
 
-    expect(\AlizHarb\Themer\Themer::resolve('overridden'))->toBe('theme::overridden');
+    expect(Themer::resolve('overridden'))->toBe('theme::overridden');
 
     // 5. Publish assets
     $assetSource = $themePath.'/resources/assets';

@@ -18,13 +18,21 @@ use AlizHarb\Themer\Console\Commands\ThemeCacheCommand;
 use AlizHarb\Themer\Console\Commands\ThemeCheckCommand;
 use AlizHarb\Themer\Console\Commands\ThemeClearCommand;
 use AlizHarb\Themer\Console\Commands\ThemeCloneCommand;
+use AlizHarb\Themer\Console\Commands\ThemeDebugCommand;
 use AlizHarb\Themer\Console\Commands\ThemeDeleteCommand;
 use AlizHarb\Themer\Console\Commands\ThemeDevCommand;
+use AlizHarb\Themer\Console\Commands\ThemeDoctorCommand;
+use AlizHarb\Themer\Console\Commands\ThemeGraphCommand;
 use AlizHarb\Themer\Console\Commands\ThemeInfoCommand;
 use AlizHarb\Themer\Console\Commands\ThemeInstallCommand;
 use AlizHarb\Themer\Console\Commands\ThemeLintCommand;
 use AlizHarb\Themer\Console\Commands\ThemeNpmCommand;
+use AlizHarb\Themer\Console\Commands\ThemePreviewCommand;
+use AlizHarb\Themer\Console\Commands\ThemeRefreshCommand;
+use AlizHarb\Themer\Console\Commands\ThemeStatusCommand;
+use AlizHarb\Themer\Console\Commands\ThemeTokensCommand;
 use AlizHarb\Themer\Console\Commands\ThemeUpgradeCommand;
+use AlizHarb\Themer\Console\Commands\ThemeWhyCommand;
 use AlizHarb\Themer\Contracts\ThemerPlugin;
 use AlizHarb\Themer\Plugins\ModulesPlugin;
 use Exception;
@@ -34,6 +42,7 @@ use Illuminate\Foundation\Console\ViewMakeCommand;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Features\SupportConsoleCommands\Commands\LayoutCommand as LivewireLayoutCommand;
 use Livewire\Features\SupportConsoleCommands\Commands\MakeCommand as LivewireMakeCommand;
@@ -157,6 +166,8 @@ class ThemeServiceProvider extends ServiceProvider
             $this->registerViteOverride();
         }
 
+        $this->registerPreviewRoute();
+
         foreach (self::$plugins as $plugin) {
             $plugin->register($this->app, $manager, $themes);
         }
@@ -192,6 +203,14 @@ class ThemeServiceProvider extends ServiceProvider
             ThemeBuildCommand::class,
             ThemeDeleteCommand::class,
             ThemeCloneCommand::class,
+            ThemeDoctorCommand::class,
+            ThemeStatusCommand::class,
+            ThemeDebugCommand::class,
+            ThemeGraphCommand::class,
+            ThemeWhyCommand::class,
+            ThemeRefreshCommand::class,
+            ThemePreviewCommand::class,
+            ThemeTokensCommand::class,
         ]);
     }
 
@@ -218,5 +237,27 @@ class ThemeServiceProvider extends ServiceProvider
         Blade::directive('theme_vite', function ($expression) {
             return sprintf('<?php echo %s::vite(%s); ?>', ThemeAsset::class, $expression);
         });
+
+        Blade::directive('themeTokens', function (): string {
+            return <<<'PHP'
+<?php
+    echo '<style>:root{';
+    foreach (theme_tokens() as $key => $value) {
+        echo '--theme-' . Illuminate\Support\Str::of((string) $key)->replace('.', '-')->kebab() . ':' . e((string) $value) . ';';
+    }
+    echo '}</style>';
+?>
+PHP;
+        });
+    }
+
+    protected function registerPreviewRoute(): void
+    {
+        Route::get('/_themer/preview/{path?}', function (?string $path = null) {
+            $target = url('/'.ltrim($path ?? '', '/'));
+            $query = http_build_query(request()->only('preview_theme'));
+
+            return redirect($query === '' ? $target : $target.'?'.$query);
+        })->where('path', '.*')->name('themer.preview');
     }
 }

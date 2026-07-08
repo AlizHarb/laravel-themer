@@ -3,11 +3,11 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Laravel Modular - Professional Theme Management for Laravel</title>
-        <meta name="description" content="The standard for building themeable Laravel applications. Strict DDD, automated discovery, and production-ready tools.">
-        <meta name="keywords" content="laravel, modular, modules, ddd, structure, package, php">
-        <meta property="og:title" content="Laravel Modular">
-        <meta property="og:description" content="Build scalable, modular Laravel applications with ease.">
+        <title>Laravel Themer - Professional Theme Management for Laravel</title>
+        <meta name="description" content="The standard for building themeable Laravel applications with diagnostics, Livewire, Vite, design tokens, and production-ready tools.">
+        <meta name="keywords" content="laravel, theme, themer, livewire, vite, design tokens, package, php">
+        <meta property="og:title" content="Laravel Themer">
+        <meta property="og:description" content="Build production-grade themeable Laravel applications with ease.">
         <meta property="og:type" content="website">
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1158,6 +1158,41 @@
                         :class="{ 'active': currentPage === 'deployment' }"
                         >Deployment</a
                     >
+                    <a
+                        href="#"
+                        @click.prevent="loadPage('diagnostics')"
+                        class="nav-link"
+                        :class="{ 'active': currentPage === 'diagnostics' }"
+                        >Diagnostics</a
+                    >
+                    <a
+                        href="#"
+                        @click.prevent="loadPage('previewing')"
+                        class="nav-link"
+                        :class="{ 'active': currentPage === 'previewing' }"
+                        >Previewing</a
+                    >
+                    <a
+                        href="#"
+                        @click.prevent="loadPage('design-tokens')"
+                        class="nav-link"
+                        :class="{ 'active': currentPage === 'design-tokens' }"
+                        >Design Tokens</a
+                    >
+                    <a
+                        href="#"
+                        @click.prevent="loadPage('boost')"
+                        class="nav-link"
+                        :class="{ 'active': currentPage === 'boost' }"
+                        >Laravel Boost</a
+                    >
+                    <a
+                        href="#"
+                        @click.prevent="loadPage('release-1.4.0')"
+                        class="nav-link"
+                        :class="{ 'active': currentPage === 'release-1.4.0' }"
+                        >v1.4.0</a
+                    >
                 </div>
                 <div class="nav-section">
                     <div class="nav-title">
@@ -1242,15 +1277,15 @@
             <div class="footer-content">
                 <div class="footer-grid">
                     <div class="footer-section">
-                        <h4>Laravel Modular</h4>
+                        <h4>Laravel Themer</h4>
                         <p style="color: var(--text-2); font-size: 0.95rem; line-height: 1.6; max-width: 300px;">
-                            The professional choice for building scalable, maintainable, and testable large-scale Laravel applications. 
-                            Strict DDD principles, automated discovery, and enterprise-grade tools out of the box.
+                            The professional choice for building scalable, maintainable, and production-ready themeable Laravel applications.
+                            Livewire, Vite, diagnostics, design tokens, and enterprise-grade tools out of the box.
                         </p>
                     </div>
                     <div class="footer-section">
                         <h4>Ecosystem</h4>
-                        <a href="https://github.com/alizharb/laravel-modular" class="footer-link">Laravel Modular</a>
+                        <a href="https://github.com/alizharb/laravel-themer" class="footer-link">Laravel Themer</a>
                         <a href="https://github.com/alizharb/laravel-modular-livewire" class="footer-link">Modular Livewire</a>
                         <a href="https://github.com/alizharb/laravel-modular" class="footer-link">Laravel Modular</a>
                     </div>
@@ -1300,6 +1335,11 @@
                         advanced: "Advanced Features",
                         testing: "Testing Themes",
                         deployment: "Deployment Guide",
+                        diagnostics: "Diagnostics",
+                        previewing: "Theme Previewing",
+                        "design-tokens": "Design Tokens",
+                        boost: "Laravel Boost",
+                        "release-1.4.0": "v1.4.0 Release Notes",
                         ecosystem: "Ecosystem",
                     },
                     init() {
@@ -1409,7 +1449,7 @@
                             // If quickstart, we might want to hide the first H1 in the markdown to check logic?
                             // Actually, let's keep it simple. Hero is ABOVE content.
                             
-                            document.title = `${this.pageTitles[page]} - Laravel Modular`;
+                            document.title = `${this.pageTitles[page]} - Laravel Themer`;
                         } catch (e) {
                             console.error("Load Page Error", e);
                             contentEl.innerHTML =

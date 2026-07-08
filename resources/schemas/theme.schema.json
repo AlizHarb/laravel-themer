@@ -76,6 +76,41 @@
                 "type": "array",
                 "items": { "type": "string" }
             }
+        },
+        "requires": {
+            "type": "object",
+            "description": "Theme, module, and package requirements.",
+            "properties": {
+                "themes": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                },
+                "modules": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                },
+                "packages": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                }
+            }
+        },
+        "conflicts": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Theme slugs that should not be installed together."
+        },
+        "provides": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Capabilities provided by this theme."
+        },
+        "tokens": {
+            "type": "object",
+            "description": "Design tokens exposed by this theme.",
+            "additionalProperties": {
+                "type": ["string", "number", "boolean"]
+            }
         }
     },
     "required": ["name", "slug", "asset_path"]
